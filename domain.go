@@ -1,7 +1,11 @@
 package namecheap
 
+import (
+  "net/url"
+)
+
 type Domain struct {
-  ID string         `xml:"ID,attr"`
+  ID int            `xml:"ID,attr"`
   Name string       `xml:"Name,attr"`
   User string       `xml:"User,attr"`
   Created string    `xml:"Created,attr"`
@@ -12,16 +16,10 @@ type Domain struct {
   WhoisGuard string `xml:"WhoisGuard,attr"`
 }
 
-type ApiResponse struct {
-  Status string   `xml:"Status,attr"`
-  Command string  `xml:"RequestedCommand"'`
-  Domains []Domain `xml:"CommandResponse>DomainGetListResult>Domain"`
-}
-
 func (client *NamecheapClient) Domains() ([]Domain, error) {
   resp := ApiResponse{}
-
-  if err := client.get("namecheap.domains.getList", &resp); err != nil {
+  requestInfo := ApiRequest{ command: "namecheap.domains.getList", params: url.Values{}}
+  if err := client.get(requestInfo, &resp); err != nil {
     return []Domain{}, err
   }
   return resp.Domains, nil

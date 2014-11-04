@@ -13,7 +13,7 @@ import (
 )
 
 const (
-  defaultBaseURL = "https://api.namecheap.com/xml.response"
+	defaultBaseURL = "https://api.namecheap.com/xml.response"
 )
 
 type NamecheapClient struct {
@@ -28,38 +28,51 @@ type NamecheapClient struct {
 	BaseURL string
 }
 
+type ApiRequest struct {
+	method  string
+	command string
+	params  url.Values
+}
+
+type ApiResponse struct {
+	Status string   `xml:"Status,attr"`
+	Command string  `xml:"RequestedCommand"'`
+	Domains []Domain `xml:"CommandResponse>DomainGetListResult>Domain"`
+}
+
 func NewClient(apiUser, apiToken, userName string) *NamecheapClient {
 	return &NamecheapClient{ApiUser: apiUser, ApiToken: apiToken, UserName: userName, HttpClient: &http.Client{}, BaseURL: defaultBaseURL}
 }
 
-func (client *NamecheapClient) get(command string, val interface{}) error {
-	body, _, err := client.sendRequest("GET", command, nil)
+func (client *NamecheapClient) get(request ApiRequest, resp interface{}) error {
+	request.method = "GET"
+	body, _, err := client.sendRequest(request, nil)
 	if err != nil {
 		return err
 	}
 
-	if err = xml.Unmarshal([]byte(body), &val); err != nil {
+	if err = xml.Unmarshal([]byte(body), &resp); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (client *NamecheapClient) makeRequest(method, command string, body io.Reader) (*http.Request, error) {
+func (client *NamecheapClient) makeRequest(request ApiRequest, body io.Reader) (*http.Request, error) {
 	url, err := url.Parse(client.BaseURL)
 	if err != nil {
 		return nil, err
 	}
-	q := url.Query()
-	q.Set("ApiUser", client.ApiUser)
-	q.Set("ApiKey", client.ApiToken)
-	q.Set("UserName", client.UserName)
-	q.Set("ClientIp", "127.0.0.1")
-	q.Set("Command", command)
-	url.RawQuery = q.Encode()
+	p := request.params
+	p.Set("ApiUser", client.ApiUser)
+	p.Set("ApiKey", client.ApiToken)
+	p.Set("UserName", client.UserName)
+	p.Set("ClientIp", "127.0.0.1")
+	p.Set("Command", request.command)
+	url.RawQuery = p.Encode()
 
-	urlString := fmt.Sprintf("%s?%s", client.BaseURL, q.Encode())
-	req, err := http.NewRequest(method, urlString, body)
+	urlString := fmt.Sprintf("%s?%s", client.BaseURL, url.RawQuery)
+	req, err := http.NewRequest(request.method, urlString, body)
 
 	if err != nil {
 		return nil, err
@@ -67,8 +80,8 @@ func (client *NamecheapClient) makeRequest(method, command string, body io.Reade
 	return req, nil
 }
 
-func (client *NamecheapClient) sendRequest(method, command string, body io.Reader) (string, int, error) {
-	req, err := client.makeRequest(method, command, body)
+func (client *NamecheapClient) sendRequest(request ApiRequest, body io.Reader) (string, int, error) {
+	req, err := client.makeRequest(request, body)
 	if err != nil {
 		return "", 0, err
 	}
