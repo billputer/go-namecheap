@@ -17,10 +17,10 @@ const (
 )
 
 type NamecheapClient struct {
-	ApiUser     string
-	ApiToken    string
-	UserName    string
-	HttpClient  *http.Client
+	ApiUser    string
+	ApiToken   string
+	UserName   string
+	HttpClient *http.Client
 
 	// Base URL for API requests.
 	// Defaults to the public Namecheap API, but can be set to a different endpoint (e.g. the sandbox).
@@ -35,8 +35,8 @@ type ApiRequest struct {
 }
 
 type ApiResponse struct {
-	Status string   `xml:"Status,attr"`
-	Command string  `xml:"RequestedCommand"'`
+	Status  string   `xml:"Status,attr"`
+	Command string   `xml:"RequestedCommand"'`
 	Domains []Domain `xml:"CommandResponse>DomainGetListResult>Domain"`
 }
 
