@@ -35,15 +35,15 @@ type ApiRequest struct {
 }
 
 type ApiResponse struct {
-	Status     string     `xml:"Status,attr"`
-	Command    string     `xml:"RequestedCommand"'`
-	Domains    []DomainGetListResult   `xml:"CommandResponse>DomainGetListResult>Domain"`
-	DomainInfo DomainInfo `xml:"CommandResponse>DomainGetInfoResult"`
-	Errors     []ApiError `xml:"Errors>Error"`
+	Status     string                `xml:"Status,attr"`
+	Command    string                `xml:"RequestedCommand"'`
+	Domains    []DomainGetListResult `xml:"CommandResponse>DomainGetListResult>Domain"`
+	DomainInfo DomainInfo            `xml:"CommandResponse>DomainGetInfoResult"`
+	Errors     []ApiError            `xml:"Errors>Error"`
 }
 
 type ApiError struct {
-	Number int `xml:"Number,attr"`
+	Number  int    `xml:"Number,attr"`
 	Message string `xml:",innerxml"`
 }
 
