@@ -74,6 +74,7 @@ func (client *NamecheapClient) makeRequest(request ApiRequest, body io.Reader) (
 	p.Set("ApiUser", client.ApiUser)
 	p.Set("ApiKey", client.ApiToken)
 	p.Set("UserName", client.UserName)
+	// This param is required by the API, but not actually used.
 	p.Set("ClientIp", "127.0.0.1")
 	p.Set("Command", request.command)
 	url.RawQuery = p.Encode()

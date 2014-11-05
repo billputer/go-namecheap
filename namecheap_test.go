@@ -1,9 +1,37 @@
 package namecheap
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 )
+
+var (
+	mux    *http.ServeMux
+	client *NamecheapClient
+	server *httptest.Server
+)
+
+// This method of testing http client APIs is borrowed from
+// Will Norris's work in go-github @ https://github.com/google/go-github
+func setup() {
+	mux = http.NewServeMux()
+	server = httptest.NewServer(mux)
+
+	client = NewClient("anApiUser", "anToken", "anUser")
+	client.BaseURL = server.URL + "/"
+}
+
+func teardown() {
+	server.Close()
+}
+
+func testMethod(t *testing.T, r *http.Request, want string) {
+	if want != r.Method {
+		t.Errorf("Request method = %v, want %v", r.Method, want)
+	}
+}
 
 func TestNewClient(t *testing.T) {
 	c := NewClient("anApiUser", "anToken", "anUser")
