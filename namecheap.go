@@ -37,7 +37,7 @@ type ApiRequest struct {
 type ApiResponse struct {
 	Status     string     `xml:"Status,attr"`
 	Command    string     `xml:"RequestedCommand"'`
-	Domains    []Domain   `xml:"CommandResponse>DomainGetListResult>Domain"`
+	Domains    []DomainGetListResult   `xml:"CommandResponse>DomainGetListResult>Domain"`
 	DomainInfo DomainInfo `xml:"CommandResponse>DomainGetInfoResult"`
 	Errors     []ApiError `xml:"Errors>Error"`
 }

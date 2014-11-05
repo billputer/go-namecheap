@@ -19,9 +19,9 @@ func main() {
   client := namecheap.NewClient(apiUser, apiToken, userName)
 
   // Get a list of your domains
-  domains, _ := client.Domains()
+  domains, _ := client.DomainsGetList()
   for _, domain := range domains {
-    fmt.Printf("Domain: %s\n", domain.Name)
+    fmt.Printf("Domain: %+v\n\n", domain.Name)
   }
 
 }

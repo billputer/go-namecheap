@@ -7,7 +7,7 @@ import (
 )
 
 // domain type returned by 'domains.getList'
-type Domain struct {
+type DomainGetListResult struct {
 	ID         int    `xml:"ID,attr"`
 	Name       string `xml:"Name,attr"`
 	User       string `xml:"User,attr"`
@@ -38,19 +38,19 @@ type DNSDetails struct {
 	Nameservers   []string `xml:"Nameserver"`
 }
 
-func (client *NamecheapClient) Domains() ([]Domain, error) {
+func (client *NamecheapClient) DomainsGetList() ([]DomainGetListResult, error) {
 	resp := ApiResponse{}
 	requestInfo := ApiRequest{
 		command: "namecheap.domains.getList",
 		params:  url.Values{},
 	}
 	if err := client.get(requestInfo, &resp); err != nil {
-		return []Domain{}, err
+		return []DomainGetListResult{}, err
 	}
 	return resp.Domains, nil
 }
 
-func (client *NamecheapClient) Domain(domainName string) (DomainInfo, error) {
+func (client *NamecheapClient) DomainGetInfo(domainName string) (DomainInfo, error) {
 	resp := ApiResponse{}
 
 	requestInfo := ApiRequest{
