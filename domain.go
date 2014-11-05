@@ -1,6 +1,8 @@
 package namecheap
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
 )
 
@@ -58,6 +60,14 @@ func (client *NamecheapClient) Domain(domainName string) (DomainInfo, error) {
 	requestInfo.params.Set("DomainName", domainName)
 	if err := client.get(requestInfo, &resp); err != nil {
 		return DomainInfo{}, err
+	}
+
+	if resp.Status == "ERROR" {
+		err_message := ""
+		for _, apiError := range resp.Errors {
+			err_message += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
+		}
+		return DomainInfo{}, errors.New(err_message)
 	}
 
 	return resp.DomainInfo, nil

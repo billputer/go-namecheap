@@ -39,6 +39,12 @@ type ApiResponse struct {
 	Command    string     `xml:"RequestedCommand"'`
 	Domains    []Domain   `xml:"CommandResponse>DomainGetListResult>Domain"`
 	DomainInfo DomainInfo `xml:"CommandResponse>DomainGetInfoResult"`
+	Errors     []ApiError `xml:"Errors>Error"`
+}
+
+type ApiError struct {
+	Number int `xml:"Number,attr"`
+	Message string `xml:",innerxml"`
 }
 
 func NewClient(apiUser, apiToken, userName string) *NamecheapClient {
