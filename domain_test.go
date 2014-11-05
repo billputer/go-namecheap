@@ -62,7 +62,7 @@ func TestDomain_DomainsGetList(t *testing.T) {
 	}}
 
 	if !reflect.DeepEqual(domains, want) {
-		t.Errorf("Domains returned %+v, want %+v", domains, want)
+		t.Errorf("DomainsGetList returned %+v, want %+v", domains, want)
 	}
 }
 
@@ -116,7 +116,7 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 	domain, err := client.DomainGetInfo("example.com")
 
 	if err != nil {
-		t.Errorf("Domain returned error: %v", err)
+		t.Errorf("DomainGetInfo returned error: %v", err)
 	}
 
 	// DomainGetListResult we expect, given the response_xml above
@@ -143,6 +143,6 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(domain, want) {
-		t.Errorf("Domains returned %+v, want %+v", domain, want)
+		t.Errorf("DomainGetInfo returned %+v, want %+v", domain, want)
 	}
 }
