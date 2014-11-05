@@ -38,4 +38,4 @@ Pull requests welcome!
 
 ## License
 
-TBD
+TBD, most concepts and code borrowed from http://github.com/rubyist/go-dnsimple
