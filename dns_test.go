@@ -38,7 +38,6 @@ func TestDNS_DNSGetHosts(t *testing.T) {
 	})
 
 	hosts, err := client.DomainsDNSGetHosts("domain", "com")
-
 	if err != nil {
 		t.Errorf("DomainsDNSGetHosts returned error: %v", err)
 	}

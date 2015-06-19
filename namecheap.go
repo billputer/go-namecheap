@@ -5,10 +5,12 @@ package namecheap
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 const defaultBaseURL = "https://api.namecheap.com/xml.response"
@@ -40,6 +42,7 @@ type ApiResponse struct {
 	DomainInfo        *DomainInfo              `xml:"CommandResponse>DomainGetInfoResult"`
 	DomainDNSHosts    *DomainDNSGetHostsResult `xml:"CommandResponse>DomainDNSGetHostsResult"`
 	DomainDNSSetHosts *DomainDNSSetHostsResult `xml:"CommandResponse>DomainDNSSetHostsResult"`
+	DomainsCheck      []DomainCheckResult      `xml:"CommandResponse>DomainCheckResult"`
 	Errors            []ApiError               `xml:"Errors>Error"`
 }
 
@@ -62,7 +65,7 @@ func NewClient(apiUser, apiToken, userName string) *Client {
 	}
 }
 
-func (client *Client) get(request *ApiRequest, resp interface{}) error {
+func (client *Client) get(request *ApiRequest, resp *ApiResponse) error {
 	request.method = "GET"
 	body, _, err := client.sendRequest(request)
 	if err != nil {
@@ -71,6 +74,14 @@ func (client *Client) get(request *ApiRequest, resp interface{}) error {
 
 	if err = xml.Unmarshal(body, &resp); err != nil {
 		return err
+	}
+
+	if resp.Status == "ERROR" {
+		errMsg := ""
+		for _, apiError := range resp.Errors {
+			errMsg += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
+		}
+		return errors.New(errMsg)
 	}
 
 	return nil
@@ -89,6 +100,11 @@ func (client *Client) makeRequest(request *ApiRequest) (*http.Request, error) {
 	p.Set("ClientIp", "127.0.0.1")
 	p.Set("Command", request.command)
 	url.RawQuery = p.Encode()
+
+	// UGH
+	//
+	// Need this for the domain name part of the domains.check endpoint
+	url.RawQuery = strings.Replace(url.RawQuery, "%2C", ",", -1)
 
 	urlString := fmt.Sprintf("%s?%s", client.BaseURL, url.RawQuery)
 	req, err := http.NewRequest(request.method, urlString, nil)

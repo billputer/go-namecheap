@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDomain_DomainsGetList(t *testing.T) {
+func TestDomainsGetList(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -66,7 +66,7 @@ func TestDomain_DomainsGetList(t *testing.T) {
 	}
 }
 
-func TestDomain_DomainGetInfo(t *testing.T) {
+func TestDomainGetInfo(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -144,5 +144,54 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 
 	if !reflect.DeepEqual(domain, want) {
 		t.Errorf("DomainGetInfo returned %+v, want %+v", domain, want)
+	}
+}
+
+func TestDomainsCheck(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.check</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.check">
+    <DomainCheckResult Domain="domain1.com" Available="true" />
+    <DomainCheckResult Domain="availabledomain.com" Available="false" />
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>32.76</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// verify that the URL exactly matches...brittle, I know.
+		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.check&DomainList=domain1.com,availabledomain.com&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
+		}
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, respXML)
+	})
+
+	domain, err := client.DomainsCheck("domain1.com", "availabledomain.com")
+	if err != nil {
+		t.Errorf("DomainsCheck returned error: %v", err)
+	}
+
+	// DomainGetListResult we expect, given the respXML above
+	want := []DomainCheckResult{
+		DomainCheckResult{
+			Domain:    "domain1.com",
+			Available: true,
+		},
+		DomainCheckResult{
+			Domain:    "availabledomain.com",
+			Available: false,
+		},
+	}
+
+	if !reflect.DeepEqual(domain, want) {
+		t.Errorf("DomainsCheck returned %+v, want %+v", domain, want)
 	}
 }
