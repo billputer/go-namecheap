@@ -26,24 +26,27 @@ type DomainDNSSetHostsResult struct {
 	IsSuccess bool   `xml:"IsSuccess,attr"`
 }
 
-func (client *NamecheapClient) DomainsDNSGetHosts(sld string, tld string) (DomainDNSGetHostsResult, error) {
-	resp := ApiResponse{}
-	requestInfo := ApiRequest{
+func (client *Client) DomainsDNSGetHosts(sld, tld string) (*DomainDNSGetHostsResult, error) {
+	resp := new(ApiResponse)
+	requestInfo := &ApiRequest{
 		command: "namecheap.domains.dns.getHosts",
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("SLD", sld)
 	requestInfo.params.Set("TLD", tld)
 
-	if err := client.get(requestInfo, &resp); err != nil {
-		return DomainDNSGetHostsResult{}, err
+	if err := client.get(requestInfo, resp); err != nil {
+		return nil, err
 	}
+
 	return resp.DomainDNSHosts, nil
 }
 
-func (client *NamecheapClient) DomainDNSSetHosts(sld string, tld string, hosts []DomainDNSHost) (DomainDNSSetHostsResult, error) {
-	resp := ApiResponse{}
-	requestInfo := ApiRequest{
+func (client *Client) DomainDNSSetHosts(
+	sld, tld string, hosts []DomainDNSHost,
+) (*DomainDNSSetHostsResult, error) {
+	resp := new(ApiResponse)
+	requestInfo := &ApiRequest{
 		command: "namecheap.domains.dns.setHosts",
 		params:  url.Values{},
 	}
@@ -58,8 +61,8 @@ func (client *NamecheapClient) DomainDNSSetHosts(sld string, tld string, hosts [
 
 	}
 
-	if err := client.get(requestInfo, &resp); err != nil {
-		return DomainDNSSetHostsResult{}, err
+	if err := client.get(requestInfo, resp); err != nil {
+		return nil, err
 	}
 	return resp.DomainDNSSetHosts, nil
 }

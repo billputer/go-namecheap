@@ -9,7 +9,7 @@ import (
 
 var (
 	mux    *http.ServeMux
-	client *NamecheapClient
+	client *Client
 	server *httptest.Server
 )
 
@@ -45,12 +45,12 @@ func TestNewClient(t *testing.T) {
 func TestMakeRequest(t *testing.T) {
 	c := NewClient("anApiUser", "anToken", "anUser")
 	c.BaseURL = "https://fake-api-server/"
-	requestInfo := ApiRequest{
+	requestInfo := &ApiRequest{
 		method:  "GET",
 		command: "namecheap.domains.getList",
 		params:  url.Values{},
 	}
-	req, _ := c.makeRequest(requestInfo, nil)
+	req, _ := c.makeRequest(requestInfo)
 
 	// correctly assembled URL
 	outURL := "https://fake-api-server/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getList&UserName=anUser"

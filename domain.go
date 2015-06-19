@@ -6,7 +6,13 @@ import (
 	"net/url"
 )
 
-// domain type returned by 'domains.getList'
+const (
+	domainsGetList = "namecheap.domains.getList"
+	domainsGetInfo = "namecheap.domains.getInfo"
+	domainsCheck   = "namecheap.domains.check"
+)
+
+// DomainGetListResult represents the data returned by 'domains.getList'
 type DomainGetListResult struct {
 	ID         int    `xml:"ID,attr"`
 	Name       string `xml:"Name,attr"`
@@ -19,7 +25,7 @@ type DomainGetListResult struct {
 	WhoisGuard string `xml:"WhoisGuard,attr"`
 }
 
-// domain type returned by 'domains.getInfo'
+// DomainInfo represents the data returned by 'domains.getInfo'
 type DomainInfo struct {
 	ID         int        `xml:"ID,attr"`
 	Name       string     `xml:"DomainName,attr"`
@@ -38,36 +44,42 @@ type DNSDetails struct {
 	Nameservers   []string `xml:"Nameserver"`
 }
 
-func (client *NamecheapClient) DomainsGetList() ([]DomainGetListResult, error) {
-	resp := ApiResponse{}
-	requestInfo := ApiRequest{
-		command: "namecheap.domains.getList",
+type DomainCheckStatus struct {
+	Domain    string `xml:"Domain,attr"`
+	Available bool   `xml:""`
+}
+
+func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
+	resp := new(ApiResponse)
+	requestInfo := &ApiRequest{
+		command: domainsGetList,
 		params:  url.Values{},
 	}
-	if err := client.get(requestInfo, &resp); err != nil {
+	if err := client.get(requestInfo, resp); err != nil {
 		return []DomainGetListResult{}, err
 	}
+
 	return resp.Domains, nil
 }
 
-func (client *NamecheapClient) DomainGetInfo(domainName string) (DomainInfo, error) {
-	resp := ApiResponse{}
+func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
+	resp := new(ApiResponse)
 
-	requestInfo := ApiRequest{
-		command: "namecheap.domains.getInfo",
+	requestInfo := &ApiRequest{
+		command: domainsGetInfo,
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("DomainName", domainName)
-	if err := client.get(requestInfo, &resp); err != nil {
-		return DomainInfo{}, err
+	if err := client.get(requestInfo, resp); err != nil {
+		return nil, err
 	}
 
 	if resp.Status == "ERROR" {
-		err_message := ""
+		errMsg := ""
 		for _, apiError := range resp.Errors {
-			err_message += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
+			errMsg += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
 		}
-		return DomainInfo{}, errors.New(err_message)
+		return nil, errors.New(errMsg)
 	}
 
 	return resp.DomainInfo, nil

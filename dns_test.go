@@ -11,7 +11,7 @@ func TestDNS_DNSGetHosts(t *testing.T) {
 	setup()
 	defer teardown()
 
-	response_xml := `
+	respXML := `
 <?xml version="1.0" encoding="UTF-8"?>
 <ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
   <Errors />
@@ -29,12 +29,12 @@ func TestDNS_DNSGetHosts(t *testing.T) {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// verify that the URL exactly matches...brittle, I know.
-		correct_url := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.getHosts&SLD=domain&TLD=com&UserName=anUser"
-		if r.URL.String() != correct_url {
-			t.Errorf("URL = %v, want %v", r.URL, correct_url)
+		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.getHosts&SLD=domain&TLD=com&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
 		}
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, response_xml)
+		fmt.Fprint(w, respXML)
 	})
 
 	hosts, err := client.DomainsDNSGetHosts("domain", "com")
@@ -43,7 +43,7 @@ func TestDNS_DNSGetHosts(t *testing.T) {
 		t.Errorf("DomainsDNSGetHosts returned error: %v", err)
 	}
 
-	want := DomainDNSGetHostsResult{
+	want := &DomainDNSGetHostsResult{
 		Domain:        "domain.com",
 		IsUsingOurDNS: true,
 		Hosts: []DomainDNSHost{
@@ -75,7 +75,7 @@ func TestDNS_DNSSetHosts(t *testing.T) {
 	setup()
 	defer teardown()
 
-	response_xml := `
+	respXML := `
 <?xml version="1.0" encoding="UTF-8"?>
 <ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
   <Errors />
@@ -90,12 +90,12 @@ func TestDNS_DNSSetHosts(t *testing.T) {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// verify that the URL exactly matches...brittle, I know.
-		correct_url := "/?Address1=http%3A%2F%2Fwww.namecheap.com&ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.setHosts&HostName1=%40&RecordType1=URL&SLD=domain51&TLD=com&TTL1=100&UserName=anUser"
-		if r.URL.String() != correct_url {
-			t.Errorf("URL = %v, want %v", r.URL, correct_url)
+		correctURL := "/?Address1=http%3A%2F%2Fwww.namecheap.com&ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.setHosts&HostName1=%40&RecordType1=URL&SLD=domain51&TLD=com&TTL1=100&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
 		}
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, response_xml)
+		fmt.Fprint(w, respXML)
 	})
 
 	hosts := []DomainDNSHost{
@@ -113,7 +113,7 @@ func TestDNS_DNSSetHosts(t *testing.T) {
 		t.Errorf("DomainsDNSGetHosts returned error: %v", err)
 	}
 
-	want := DomainDNSSetHostsResult{
+	want := &DomainDNSSetHostsResult{
 		Domain:    "domain51.com",
 		IsSuccess: true,
 	}

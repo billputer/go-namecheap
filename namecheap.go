@@ -6,24 +6,23 @@ package namecheap
 import (
 	"encoding/xml"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 )
 
-const (
-	defaultBaseURL = "https://api.namecheap.com/xml.response"
-)
+const defaultBaseURL = "https://api.namecheap.com/xml.response"
 
-type NamecheapClient struct {
+// Client represents a client used to make calls to the Namecheap API.
+type Client struct {
 	ApiUser    string
 	ApiToken   string
 	UserName   string
 	HttpClient *http.Client
 
 	// Base URL for API requests.
-	// Defaults to the public Namecheap API, but can be set to a different endpoint (e.g. the sandbox).
+	// Defaults to the public Namecheap API,
+	// but can be set to a different endpoint (e.g. the sandbox).
 	// BaseURL should always be specified with a trailing slash.
 	BaseURL string
 }
@@ -35,13 +34,13 @@ type ApiRequest struct {
 }
 
 type ApiResponse struct {
-	Status            string                  `xml:"Status,attr"`
-	Command           string                  `xml:"RequestedCommand"'`
-	Domains           []DomainGetListResult   `xml:"CommandResponse>DomainGetListResult>Domain"`
-	DomainInfo        DomainInfo              `xml:"CommandResponse>DomainGetInfoResult"`
-	DomainDNSHosts    DomainDNSGetHostsResult `xml:"CommandResponse>DomainDNSGetHostsResult"`
-	DomainDNSSetHosts DomainDNSSetHostsResult `xml:"CommandResponse>DomainDNSSetHostsResult"`
-	Errors            []ApiError              `xml:"Errors>Error"`
+	Status            string                   `xml:"Status,attr"`
+	Command           string                   `xml:"RequestedCommand"`
+	Domains           []DomainGetListResult    `xml:"CommandResponse>DomainGetListResult>Domain"`
+	DomainInfo        *DomainInfo              `xml:"CommandResponse>DomainGetInfoResult"`
+	DomainDNSHosts    *DomainDNSGetHostsResult `xml:"CommandResponse>DomainDNSGetHostsResult"`
+	DomainDNSSetHosts *DomainDNSSetHostsResult `xml:"CommandResponse>DomainDNSSetHostsResult"`
+	Errors            []ApiError               `xml:"Errors>Error"`
 }
 
 type ApiError struct {
@@ -49,25 +48,35 @@ type ApiError struct {
 	Message string `xml:",innerxml"`
 }
 
-func NewClient(apiUser, apiToken, userName string) *NamecheapClient {
-	return &NamecheapClient{ApiUser: apiUser, ApiToken: apiToken, UserName: userName, HttpClient: &http.Client{}, BaseURL: defaultBaseURL}
+func (err *ApiError) Error() string {
+	return err.Message
 }
 
-func (client *NamecheapClient) get(request ApiRequest, resp interface{}) error {
+func NewClient(apiUser, apiToken, userName string) *Client {
+	return &Client{
+		ApiUser:    apiUser,
+		ApiToken:   apiToken,
+		UserName:   userName,
+		HttpClient: http.DefaultClient,
+		BaseURL:    defaultBaseURL,
+	}
+}
+
+func (client *Client) get(request *ApiRequest, resp interface{}) error {
 	request.method = "GET"
-	body, _, err := client.sendRequest(request, nil)
+	body, _, err := client.sendRequest(request)
 	if err != nil {
 		return err
 	}
 
-	if err = xml.Unmarshal([]byte(body), &resp); err != nil {
+	if err = xml.Unmarshal(body, &resp); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (client *NamecheapClient) makeRequest(request ApiRequest, body io.Reader) (*http.Request, error) {
+func (client *Client) makeRequest(request *ApiRequest) (*http.Request, error) {
 	url, err := url.Parse(client.BaseURL)
 	if err != nil {
 		return nil, err
@@ -82,30 +91,30 @@ func (client *NamecheapClient) makeRequest(request ApiRequest, body io.Reader) (
 	url.RawQuery = p.Encode()
 
 	urlString := fmt.Sprintf("%s?%s", client.BaseURL, url.RawQuery)
-	req, err := http.NewRequest(request.method, urlString, body)
-
+	req, err := http.NewRequest(request.method, urlString, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	return req, nil
 }
 
-func (client *NamecheapClient) sendRequest(request ApiRequest, body io.Reader) (string, int, error) {
-	req, err := client.makeRequest(request, body)
+func (client *Client) sendRequest(request *ApiRequest) ([]byte, int, error) {
+	req, err := client.makeRequest(request)
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
 
 	resp, err := client.HttpClient.Do(req)
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
 	defer resp.Body.Close()
 
-	responseBytes, err := ioutil.ReadAll(resp.Body)
+	buf, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
 
-	return string(responseBytes), resp.StatusCode, nil
+	return buf, resp.StatusCode, nil
 }

@@ -11,7 +11,7 @@ func TestDomain_DomainsGetList(t *testing.T) {
 	setup()
 	defer teardown()
 
-	response_xml := `
+	respXML := `
     <?xml version="1.0" encoding="utf-8"?>
     <ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
       <Errors />
@@ -34,12 +34,12 @@ func TestDomain_DomainsGetList(t *testing.T) {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// verify that the URL exactly matches...brittle, I know.
-		correct_url := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getList&UserName=anUser"
-		if r.URL.String() != correct_url {
-			t.Errorf("URL = %v, want %v", r.URL, correct_url)
+		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getList&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
 		}
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, response_xml)
+		fmt.Fprint(w, respXML)
 	})
 
 	domains, err := client.DomainsGetList()
@@ -48,7 +48,7 @@ func TestDomain_DomainsGetList(t *testing.T) {
 		t.Errorf("DomainsGetList returned error: %v", err)
 	}
 
-	// DomainGetListResult we expect, given the response_xml above
+	// DomainGetListResult we expect, given the respXML above
 	want := []DomainGetListResult{{
 		ID:         57579,
 		Name:       "example.com",
@@ -70,7 +70,7 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 	setup()
 	defer teardown()
 
-	response_xml := `<?xml version="1.0" encoding="utf-8"?>
+	respXML := `<?xml version="1.0" encoding="utf-8"?>
 <ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
   <Errors />
   <Warnings />
@@ -105,12 +105,12 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// verify that the URL exactly matches...brittle, I know.
-		correct_url := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getInfo&DomainName=example.com&UserName=anUser"
-		if r.URL.String() != correct_url {
-			t.Errorf("URL = %v, want %v", r.URL, correct_url)
+		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getInfo&DomainName=example.com&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
 		}
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, response_xml)
+		fmt.Fprint(w, respXML)
 	})
 
 	domain, err := client.DomainGetInfo("example.com")
@@ -119,8 +119,8 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 		t.Errorf("DomainGetInfo returned error: %v", err)
 	}
 
-	// DomainGetListResult we expect, given the response_xml above
-	want := DomainInfo{
+	// DomainGetListResult we expect, given the respXML above
+	want := &DomainInfo{
 		ID:        57582,
 		Name:      "example.com",
 		Owner:     "anUser",
