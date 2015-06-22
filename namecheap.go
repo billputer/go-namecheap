@@ -65,15 +65,16 @@ func NewClient(apiUser, apiToken, userName string) *Client {
 	}
 }
 
-func (client *Client) get(request *ApiRequest, resp *ApiResponse) error {
+func (client *Client) get(request *ApiRequest) (*ApiResponse, error) {
 	request.method = "GET"
 	body, _, err := client.sendRequest(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err = xml.Unmarshal(body, &resp); err != nil {
-		return err
+	resp := new(ApiResponse)
+	if err = xml.Unmarshal(body, resp); err != nil {
+		return nil, err
 	}
 
 	if resp.Status == "ERROR" {
@@ -81,10 +82,10 @@ func (client *Client) get(request *ApiRequest, resp *ApiResponse) error {
 		for _, apiError := range resp.Errors {
 			errMsg += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
 		}
-		return errors.New(errMsg)
+		return nil, errors.New(errMsg)
 	}
 
-	return nil
+	return resp, nil
 }
 
 func (client *Client) makeRequest(request *ApiRequest) (*http.Request, error) {

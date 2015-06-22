@@ -49,12 +49,13 @@ type DomainCheckResult struct {
 }
 
 func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
-	resp := new(ApiResponse)
 	requestInfo := &ApiRequest{
 		command: domainsGetList,
 		params:  url.Values{},
 	}
-	if err := client.get(requestInfo, resp); err != nil {
+
+	resp, err := client.get(requestInfo)
+	if err != nil {
 		return nil, err
 	}
 
@@ -62,14 +63,14 @@ func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 }
 
 func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
-	resp := new(ApiResponse)
-
 	requestInfo := &ApiRequest{
 		command: domainsGetInfo,
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("DomainName", domainName)
-	if err := client.get(requestInfo, resp); err != nil {
+
+	resp, err := client.get(requestInfo)
+	if err != nil {
 		return nil, err
 	}
 
@@ -77,14 +78,14 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 }
 
 func (client *Client) DomainsCheck(domainNames ...string) ([]DomainCheckResult, error) {
-	resp := new(ApiResponse)
 	requestInfo := &ApiRequest{
 		command: domainsCheck,
 		params:  url.Values{},
 	}
 
 	requestInfo.params.Set("DomainList", strings.Join(domainNames, ","))
-	if err := client.get(requestInfo, resp); err != nil {
+	resp, err := client.get(requestInfo)
+	if err != nil {
 		return nil, err
 	}
 
