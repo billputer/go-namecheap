@@ -1,9 +1,8 @@
 package namecheap
 
 import (
-	"errors"
-	"fmt"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -44,9 +43,9 @@ type DNSDetails struct {
 	Nameservers   []string `xml:"Nameserver"`
 }
 
-type DomainCheckStatus struct {
+type DomainCheckResult struct {
 	Domain    string `xml:"Domain,attr"`
-	Available bool   `xml:""`
+	Available bool   `xml:"Available,attr"`
 }
 
 func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
@@ -56,7 +55,7 @@ func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 		params:  url.Values{},
 	}
 	if err := client.get(requestInfo, resp); err != nil {
-		return []DomainGetListResult{}, err
+		return nil, err
 	}
 
 	return resp.Domains, nil
@@ -74,13 +73,20 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 		return nil, err
 	}
 
-	if resp.Status == "ERROR" {
-		errMsg := ""
-		for _, apiError := range resp.Errors {
-			errMsg += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
-		}
-		return nil, errors.New(errMsg)
+	return resp.DomainInfo, nil
+}
+
+func (client *Client) DomainsCheck(domainNames ...string) ([]DomainCheckResult, error) {
+	resp := new(ApiResponse)
+	requestInfo := &ApiRequest{
+		command: domainsCheck,
+		params:  url.Values{},
 	}
 
-	return resp.DomainInfo, nil
+	requestInfo.params.Set("DomainList", strings.Join(domainNames, ","))
+	if err := client.get(requestInfo, resp); err != nil {
+		return nil, err
+	}
+
+	return resp.DomainsCheck, nil
 }
