@@ -27,6 +27,8 @@ type Client struct {
 	// but can be set to a different endpoint (e.g. the sandbox).
 	// BaseURL should always be specified with a trailing slash.
 	BaseURL string
+
+	*Registrant
 }
 
 type ApiRequest struct {
@@ -42,10 +44,12 @@ type ApiResponse struct {
 	DomainInfo        *DomainInfo              `xml:"CommandResponse>DomainGetInfoResult"`
 	DomainDNSHosts    *DomainDNSGetHostsResult `xml:"CommandResponse>DomainDNSGetHostsResult"`
 	DomainDNSSetHosts *DomainDNSSetHostsResult `xml:"CommandResponse>DomainDNSSetHostsResult"`
+	DomainCreate      *DomainCreateResult      `xml:"CommandResponse>DomainCreateResult"`
 	DomainsCheck      []DomainCheckResult      `xml:"CommandResponse>DomainCheckResult"`
 	Errors            []ApiError               `xml:"Errors>Error"`
 }
 
+// ApiError is the format of the error returned in the api responses.
 type ApiError struct {
 	Number  int    `xml:"Number,attr"`
 	Message string `xml:",innerxml"`
@@ -63,6 +67,21 @@ func NewClient(apiUser, apiToken, userName string) *Client {
 		HttpClient: http.DefaultClient,
 		BaseURL:    defaultBaseURL,
 	}
+}
+
+// NewRegistrant associates a new registrant with the
+func (client *Client) NewRegistrant(
+	firstName, lastName,
+	addr1, addr2,
+	city, state, postalCode, country,
+	phone, email string,
+) {
+	client.Registrant = newRegistrant(
+		firstName, lastName,
+		addr1, addr2,
+		city, state, postalCode, country,
+		phone, email,
+	)
 }
 
 func (client *Client) get(request *ApiRequest) (*ApiResponse, error) {
