@@ -1,7 +1,9 @@
 package namecheap
 
 import (
+	"errors"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -9,6 +11,7 @@ const (
 	domainsGetList = "namecheap.domains.getList"
 	domainsGetInfo = "namecheap.domains.getInfo"
 	domainsCheck   = "namecheap.domains.check"
+	domainsCreate  = "namecheap.domains.create"
 )
 
 // DomainGetListResult represents the data returned by 'domains.getList'
@@ -48,6 +51,17 @@ type DomainCheckResult struct {
 	Available bool   `xml:"Available,attr"`
 }
 
+type DomainCreateResult struct {
+	Domain            string  `xml:"Domain,attr"`
+	Registered        bool    `xml:"Registered,attr"`
+	ChargedAmount     float64 `xml:"ChargedAmount,attr"`
+	DomainID          int     `xml:"DomainID,attr"`
+	OrderID           int     `xml:"OrderID,attr"`
+	TransactionID     int     `xml:"TransactionID,attr"`
+	WhoisGuardEnable  bool    `xml:"WhoisGuardEnable,attr"`
+	NonRealTimeDomain bool    `xml:"NonRealTimeDomain,attr"`
+}
+
 func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsGetList,
@@ -67,6 +81,7 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 		command: domainsGetInfo,
 		params:  url.Values{},
 	}
+
 	requestInfo.params.Set("DomainName", domainName)
 
 	resp, err := client.get(requestInfo)
@@ -90,4 +105,28 @@ func (client *Client) DomainsCheck(domainNames ...string) ([]DomainCheckResult, 
 	}
 
 	return resp.DomainsCheck, nil
+}
+
+func (client *Client) DomainCreate(domainName string, years int) (*DomainCreateResult, error) {
+	if client.Registrant == nil {
+		return nil, errors.New("Registrant information on client cannot be empty")
+	}
+
+	requestInfo := &ApiRequest{
+		command: domainsCreate,
+		params:  url.Values{},
+	}
+
+	requestInfo.params.Set("DomainName", domainName)
+	requestInfo.params.Set("Years", strconv.Itoa(years))
+	if err := client.Registrant.addValues(requestInfo.params); err != nil {
+		return nil, err
+	}
+
+	resp, err := client.get(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainCreate, nil
 }
