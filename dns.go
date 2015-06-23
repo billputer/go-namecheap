@@ -6,6 +6,11 @@ import (
 	"strconv"
 )
 
+const (
+	domainsDNSGetHosts = "namecheap.domains.dns.getHosts"
+	domainsDNSSetHosts = "namecheap.domains.dns.setHosts"
+)
+
 type DomainDNSGetHostsResult struct {
 	Domain        string          `xml:"Domain,attr"`
 	IsUsingOurDNS bool            `xml:"IsUsingOurDNS,attr"`
@@ -28,13 +33,14 @@ type DomainDNSSetHostsResult struct {
 
 func (client *Client) DomainsDNSGetHosts(sld, tld string) (*DomainDNSGetHostsResult, error) {
 	requestInfo := &ApiRequest{
-		command: "namecheap.domains.dns.getHosts",
+		command: domainsDNSGetHosts,
+		method:  "GET",
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("SLD", sld)
 	requestInfo.params.Set("TLD", tld)
 
-	resp, err := client.get(requestInfo)
+	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +52,8 @@ func (client *Client) DomainDNSSetHosts(
 	sld, tld string, hosts []DomainDNSHost,
 ) (*DomainDNSSetHostsResult, error) {
 	requestInfo := &ApiRequest{
-		command: "namecheap.domains.dns.setHosts",
+		command: domainsDNSSetHosts,
+		method:  "GET",
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("SLD", sld)
@@ -60,7 +67,7 @@ func (client *Client) DomainDNSSetHosts(
 
 	}
 
-	resp, err := client.get(requestInfo)
+	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
 	}

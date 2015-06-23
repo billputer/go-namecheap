@@ -65,10 +65,11 @@ type DomainCreateResult struct {
 func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsGetList,
+		method:  "GET",
 		params:  url.Values{},
 	}
 
-	resp, err := client.get(requestInfo)
+	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -79,12 +80,13 @@ func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 	requestInfo := &ApiRequest{
 		command: domainsGetInfo,
+		method:  "GET",
 		params:  url.Values{},
 	}
 
 	requestInfo.params.Set("DomainName", domainName)
 
-	resp, err := client.get(requestInfo)
+	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -95,11 +97,12 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 func (client *Client) DomainsCheck(domainNames ...string) ([]DomainCheckResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsCheck,
+		method:  "GET",
 		params:  url.Values{},
 	}
 
 	requestInfo.params.Set("DomainList", strings.Join(domainNames, ","))
-	resp, err := client.get(requestInfo)
+	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +117,7 @@ func (client *Client) DomainCreate(domainName string, years int) (*DomainCreateR
 
 	requestInfo := &ApiRequest{
 		command: domainsCreate,
+		method:  "POST",
 		params:  url.Values{},
 	}
 
@@ -123,7 +127,7 @@ func (client *Client) DomainCreate(domainName string, years int) (*DomainCreateR
 		return nil, err
 	}
 
-	resp, err := client.get(requestInfo)
+	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
 	}

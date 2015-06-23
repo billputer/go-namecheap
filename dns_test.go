@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestDNS_DNSGetHosts(t *testing.T) {
+func TestDomainsDNSGetHosts(t *testing.T) {
 	setup()
 	defer teardown()
 
@@ -70,7 +70,7 @@ func TestDNS_DNSGetHosts(t *testing.T) {
 	}
 }
 
-func TestDNS_DNSSetHosts(t *testing.T) {
+func TestDomainsDNSSetHosts(t *testing.T) {
 	setup()
 	defer teardown()
 

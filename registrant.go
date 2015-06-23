@@ -105,13 +105,11 @@ func (reg *Registrant) addValues(u url.Values) error {
 			)
 		}
 		if field == "" {
-			if strings.Contains(fieldName, "ddress1") {
-				return fmt.Errorf("Field %s cannot be empty", fieldName)
-			}
-
 			if strings.Contains(fieldName, "ddress2") {
 				continue
 			}
+
+			return fmt.Errorf("Field %s cannot be empty", fieldName)
 		}
 
 		u.Set(fieldName, fmt.Sprintf("%v", field))

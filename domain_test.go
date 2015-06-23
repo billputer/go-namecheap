@@ -228,7 +228,7 @@ func TestDomainCreate(t *testing.T) {
 		if !reflect.DeepEqual(values, correctValues) {
 			t.Fatalf("URL = \n%v,\nwant \n%v", values, correctValues)
 		}
-		testMethod(t, r, "GET")
+		testMethod(t, r, "POST")
 
 		fmt.Fprint(w, respXML)
 	})

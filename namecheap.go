@@ -84,8 +84,11 @@ func (client *Client) NewRegistrant(
 	)
 }
 
-func (client *Client) get(request *ApiRequest) (*ApiResponse, error) {
-	request.method = "GET"
+func (client *Client) do(request *ApiRequest) (*ApiResponse, error) {
+	if request.method == "" {
+		return nil, errors.New("request method cannot be blank")
+	}
+
 	body, _, err := client.sendRequest(request)
 	if err != nil {
 		return nil, err
