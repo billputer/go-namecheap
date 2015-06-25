@@ -3,15 +3,16 @@ package namecheap
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
 	"testing"
 )
 
-func TestDomain_DomainsGetList(t *testing.T) {
+func TestDomainsGetList(t *testing.T) {
 	setup()
 	defer teardown()
 
-	response_xml := `
+	respXML := `
     <?xml version="1.0" encoding="utf-8"?>
     <ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
       <Errors />
@@ -34,12 +35,12 @@ func TestDomain_DomainsGetList(t *testing.T) {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// verify that the URL exactly matches...brittle, I know.
-		correct_url := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getList&UserName=anUser"
-		if r.URL.String() != correct_url {
-			t.Errorf("URL = %v, want %v", r.URL, correct_url)
+		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getList&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
 		}
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, response_xml)
+		fmt.Fprint(w, respXML)
 	})
 
 	domains, err := client.DomainsGetList()
@@ -48,7 +49,7 @@ func TestDomain_DomainsGetList(t *testing.T) {
 		t.Errorf("DomainsGetList returned error: %v", err)
 	}
 
-	// DomainGetListResult we expect, given the response_xml above
+	// DomainGetListResult we expect, given the respXML above
 	want := []DomainGetListResult{{
 		ID:         57579,
 		Name:       "example.com",
@@ -66,11 +67,11 @@ func TestDomain_DomainsGetList(t *testing.T) {
 	}
 }
 
-func TestDomain_DomainGetInfo(t *testing.T) {
+func TestDomainGetInfo(t *testing.T) {
 	setup()
 	defer teardown()
 
-	response_xml := `<?xml version="1.0" encoding="utf-8"?>
+	respXML := `<?xml version="1.0" encoding="utf-8"?>
 <ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
   <Errors />
   <Warnings />
@@ -105,12 +106,12 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// verify that the URL exactly matches...brittle, I know.
-		correct_url := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getInfo&DomainName=example.com&UserName=anUser"
-		if r.URL.String() != correct_url {
-			t.Errorf("URL = %v, want %v", r.URL, correct_url)
+		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getInfo&DomainName=example.com&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
 		}
 		testMethod(t, r, "GET")
-		fmt.Fprint(w, response_xml)
+		fmt.Fprint(w, respXML)
 	})
 
 	domain, err := client.DomainGetInfo("example.com")
@@ -119,8 +120,8 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 		t.Errorf("DomainGetInfo returned error: %v", err)
 	}
 
-	// DomainGetListResult we expect, given the response_xml above
-	want := DomainInfo{
+	// DomainGetListResult we expect, given the respXML above
+	want := &DomainInfo{
 		ID:        57582,
 		Name:      "example.com",
 		Owner:     "anUser",
@@ -144,5 +145,112 @@ func TestDomain_DomainGetInfo(t *testing.T) {
 
 	if !reflect.DeepEqual(domain, want) {
 		t.Errorf("DomainGetInfo returned %+v, want %+v", domain, want)
+	}
+}
+
+func TestDomainsCheck(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.check</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.check">
+    <DomainCheckResult Domain="domain1.com" Available="true" />
+    <DomainCheckResult Domain="availabledomain.com" Available="false" />
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>32.76</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// verify that the URL exactly matches...brittle, I know.
+		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.check&DomainList=domain1.com,availabledomain.com&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
+		}
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, respXML)
+	})
+
+	domain, err := client.DomainsCheck("domain1.com", "availabledomain.com")
+	if err != nil {
+		t.Errorf("DomainsCheck returned error: %v", err)
+	}
+
+	// DomainGetListResult we expect, given the respXML above
+	want := []DomainCheckResult{
+		DomainCheckResult{
+			Domain:    "domain1.com",
+			Available: true,
+		},
+		DomainCheckResult{
+			Domain:    "availabledomain.com",
+			Available: false,
+		},
+	}
+
+	if !reflect.DeepEqual(domain, want) {
+		t.Errorf("DomainsCheck returned %+v, want %+v", domain, want)
+	}
+}
+
+func TestDomainCreate(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+	<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+	  <Errors />
+	  <RequestedCommand>namecheap.domains.create</RequestedCommand>
+	  <CommandResponse Type="namecheap.domains.create">
+	    <DomainCreateResult Domain="domain1.com" Registered="true" ChargedAmount="20.3600" DomainID="9007" OrderID="196074" TransactionID="380716" WhoisguardEnable="false" NonRealTimeDomain="false" />
+	  </CommandResponse>
+	  <Server>SERVER-NAME</Server>
+	  <GMTTimeDifference>+5</GMTTimeDifference>
+	  <ExecutionTime>0.078</ExecutionTime>
+	</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// verify that the URL exactly matches...brittle, I know.
+		correctURL := "/?AdminAddress1=8939%20S.cross%20Blvd&ApiUser=anApiUser&ApiKey=anToken&UserName=anUser&Command=namecheap.domains.create&ClientIp=127.0.0.1&DomainName=domain1.com&Years=2&AuxBillingFirstName=John&AuxBillingLastName=Smith&AuxBillingAddress1=8939%20S.cross%20Blvd&AuxBillingStateProvince=CA&AuxBillingPostalCode=90045&AuxBillingCountry=US&AuxBillingPhone=+1.6613102107&AuxBillingEmailAddress=john@gmail.com&AuxBillingCity=CA&TechFirstName=John&TechLastName=Smith&TechAddress1=8939%20S.cross%20Blvd&TechStateProvince=CA&TechPostalCode=90045&TechCountry=US&TechPhone=+1.6613102107&TechEmailAddress=john@gmail.com&TechCity=CA&AdminFirstName=John&AdminLastName=Smith&AdminStateProvince=CA&AdminPostalCode=90045&AdminCountry=US&AdminPhone=+1.6613102107&AdminEmailAddress=john@gmail.com&AdminCity=CA&RegistrantFirstName=John&RegistrantLastName=Smith&RegistrantAddress1=8939%20S.cross%20Blvd&RegistrantStateProvince=CA&RegistrantPostalCode=90045&RegistrantCountry=US&RegistrantPhone=+1.6613102107&RegistrantEmailAddress=john@gmail.com&RegistrantCity=CA"
+		correctValues, err := url.ParseQuery(correctURL)
+		if err != nil {
+			t.Fatal(err)
+		}
+		values, err := url.ParseQuery(r.URL.String())
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if !reflect.DeepEqual(values, correctValues) {
+			t.Fatalf("URL = \n%v,\nwant \n%v", values, correctValues)
+		}
+		testMethod(t, r, "POST")
+
+		fmt.Fprint(w, respXML)
+	})
+
+	client.NewRegistrant(
+		"John", "Smith",
+		"8939 S.cross Blvd", "",
+		"CA", "CA", "90045", "US",
+		" 1.6613102107", "john@gmail.com",
+	)
+
+	result, err := client.DomainCreate("domain1.com", 2)
+	if err != nil {
+		t.Fatalf("DomainCreate returned error: %v", nil)
+	}
+
+	// DomainGetListResult we expect, given the respXML above
+	want := &DomainCreateResult{
+		"domain1.com", true, 20.36, 9007, 196074, 380716, false, false,
+	}
+
+	if !reflect.DeepEqual(result, want) {
+		t.Fatalf("DomainCreate returned\n%+v,\nwant\n%+v", result, want)
 	}
 }

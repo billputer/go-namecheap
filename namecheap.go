@@ -5,27 +5,30 @@ package namecheap
 
 import (
 	"encoding/xml"
+	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
-const (
-	defaultBaseURL = "https://api.namecheap.com/xml.response"
-)
+const defaultBaseURL = "https://api.namecheap.com/xml.response"
 
-type NamecheapClient struct {
+// Client represents a client used to make calls to the Namecheap API.
+type Client struct {
 	ApiUser    string
 	ApiToken   string
 	UserName   string
 	HttpClient *http.Client
 
 	// Base URL for API requests.
-	// Defaults to the public Namecheap API, but can be set to a different endpoint (e.g. the sandbox).
+	// Defaults to the public Namecheap API,
+	// but can be set to a different endpoint (e.g. the sandbox).
 	// BaseURL should always be specified with a trailing slash.
 	BaseURL string
+
+	*Registrant
 }
 
 type ApiRequest struct {
@@ -35,39 +38,79 @@ type ApiRequest struct {
 }
 
 type ApiResponse struct {
-	Status            string                  `xml:"Status,attr"`
-	Command           string                  `xml:"RequestedCommand"'`
-	Domains           []DomainGetListResult   `xml:"CommandResponse>DomainGetListResult>Domain"`
-	DomainInfo        DomainInfo              `xml:"CommandResponse>DomainGetInfoResult"`
-	DomainDNSHosts    DomainDNSGetHostsResult `xml:"CommandResponse>DomainDNSGetHostsResult"`
-	DomainDNSSetHosts DomainDNSSetHostsResult `xml:"CommandResponse>DomainDNSSetHostsResult"`
-	Errors            []ApiError              `xml:"Errors>Error"`
+	Status            string                   `xml:"Status,attr"`
+	Command           string                   `xml:"RequestedCommand"`
+	Domains           []DomainGetListResult    `xml:"CommandResponse>DomainGetListResult>Domain"`
+	DomainInfo        *DomainInfo              `xml:"CommandResponse>DomainGetInfoResult"`
+	DomainDNSHosts    *DomainDNSGetHostsResult `xml:"CommandResponse>DomainDNSGetHostsResult"`
+	DomainDNSSetHosts *DomainDNSSetHostsResult `xml:"CommandResponse>DomainDNSSetHostsResult"`
+	DomainCreate      *DomainCreateResult      `xml:"CommandResponse>DomainCreateResult"`
+	DomainsCheck      []DomainCheckResult      `xml:"CommandResponse>DomainCheckResult"`
+	Errors            []ApiError               `xml:"Errors>Error"`
 }
 
+// ApiError is the format of the error returned in the api responses.
 type ApiError struct {
 	Number  int    `xml:"Number,attr"`
 	Message string `xml:",innerxml"`
 }
 
-func NewClient(apiUser, apiToken, userName string) *NamecheapClient {
-	return &NamecheapClient{ApiUser: apiUser, ApiToken: apiToken, UserName: userName, HttpClient: &http.Client{}, BaseURL: defaultBaseURL}
+func (err *ApiError) Error() string {
+	return err.Message
 }
 
-func (client *NamecheapClient) get(request ApiRequest, resp interface{}) error {
-	request.method = "GET"
-	body, _, err := client.sendRequest(request, nil)
+func NewClient(apiUser, apiToken, userName string) *Client {
+	return &Client{
+		ApiUser:    apiUser,
+		ApiToken:   apiToken,
+		UserName:   userName,
+		HttpClient: http.DefaultClient,
+		BaseURL:    defaultBaseURL,
+	}
+}
+
+// NewRegistrant associates a new registrant with the
+func (client *Client) NewRegistrant(
+	firstName, lastName,
+	addr1, addr2,
+	city, state, postalCode, country,
+	phone, email string,
+) {
+	client.Registrant = newRegistrant(
+		firstName, lastName,
+		addr1, addr2,
+		city, state, postalCode, country,
+		phone, email,
+	)
+}
+
+func (client *Client) do(request *ApiRequest) (*ApiResponse, error) {
+	if request.method == "" {
+		return nil, errors.New("request method cannot be blank")
+	}
+
+	body, _, err := client.sendRequest(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err = xml.Unmarshal([]byte(body), &resp); err != nil {
-		return err
+	resp := new(ApiResponse)
+	if err = xml.Unmarshal(body, resp); err != nil {
+		return nil, err
 	}
 
-	return nil
+	if resp.Status == "ERROR" {
+		errMsg := ""
+		for _, apiError := range resp.Errors {
+			errMsg += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
+		}
+		return nil, errors.New(errMsg)
+	}
+
+	return resp, nil
 }
 
-func (client *NamecheapClient) makeRequest(request ApiRequest, body io.Reader) (*http.Request, error) {
+func (client *Client) makeRequest(request *ApiRequest) (*http.Request, error) {
 	url, err := url.Parse(client.BaseURL)
 	if err != nil {
 		return nil, err
@@ -81,31 +124,36 @@ func (client *NamecheapClient) makeRequest(request ApiRequest, body io.Reader) (
 	p.Set("Command", request.command)
 	url.RawQuery = p.Encode()
 
-	urlString := fmt.Sprintf("%s?%s", client.BaseURL, url.RawQuery)
-	req, err := http.NewRequest(request.method, urlString, body)
+	// UGH
+	//
+	// Need this for the domain name part of the domains.check endpoint
+	url.RawQuery = strings.Replace(url.RawQuery, "%2C", ",", -1)
 
+	urlString := fmt.Sprintf("%s?%s", client.BaseURL, url.RawQuery)
+	req, err := http.NewRequest(request.method, urlString, nil)
 	if err != nil {
 		return nil, err
 	}
+
 	return req, nil
 }
 
-func (client *NamecheapClient) sendRequest(request ApiRequest, body io.Reader) (string, int, error) {
-	req, err := client.makeRequest(request, body)
+func (client *Client) sendRequest(request *ApiRequest) ([]byte, int, error) {
+	req, err := client.makeRequest(request)
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
 
 	resp, err := client.HttpClient.Do(req)
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
 	defer resp.Body.Close()
 
-	responseBytes, err := ioutil.ReadAll(resp.Body)
+	buf, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", 0, err
+		return nil, 0, err
 	}
 
-	return string(responseBytes), resp.StatusCode, nil
+	return buf, resp.StatusCode, nil
 }
