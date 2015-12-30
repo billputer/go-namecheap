@@ -46,6 +46,7 @@ type ApiResponse struct {
 	DomainDNSSetHosts *DomainDNSSetHostsResult `xml:"CommandResponse>DomainDNSSetHostsResult"`
 	DomainCreate      *DomainCreateResult      `xml:"CommandResponse>DomainCreateResult"`
 	DomainsCheck      []DomainCheckResult      `xml:"CommandResponse>DomainCheckResult"`
+	DomainNSInfo      *DomainNSInfoResult      `xml:"CommandResponse>DomainNSInfoResult"`
 	Errors            []ApiError               `xml:"Errors>Error"`
 }
 
