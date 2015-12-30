@@ -38,15 +38,17 @@ type ApiRequest struct {
 }
 
 type ApiResponse struct {
-	Status            string                   `xml:"Status,attr"`
-	Command           string                   `xml:"RequestedCommand"`
-	Domains           []DomainGetListResult    `xml:"CommandResponse>DomainGetListResult>Domain"`
-	DomainInfo        *DomainInfo              `xml:"CommandResponse>DomainGetInfoResult"`
-	DomainDNSHosts    *DomainDNSGetHostsResult `xml:"CommandResponse>DomainDNSGetHostsResult"`
-	DomainDNSSetHosts *DomainDNSSetHostsResult `xml:"CommandResponse>DomainDNSSetHostsResult"`
-	DomainCreate      *DomainCreateResult      `xml:"CommandResponse>DomainCreateResult"`
-	DomainsCheck      []DomainCheckResult      `xml:"CommandResponse>DomainCheckResult"`
-	Errors            []ApiError               `xml:"Errors>Error"`
+	Status             string                    `xml:"Status,attr"`
+	Command            string                    `xml:"RequestedCommand"`
+	Domains            []DomainGetListResult     `xml:"CommandResponse>DomainGetListResult>Domain"`
+	DomainInfo         *DomainInfo               `xml:"CommandResponse>DomainGetInfoResult"`
+	DomainDNSHosts     *DomainDNSGetHostsResult  `xml:"CommandResponse>DomainDNSGetHostsResult"`
+	DomainDNSSetHosts  *DomainDNSSetHostsResult  `xml:"CommandResponse>DomainDNSSetHostsResult"`
+	DomainCreate       *DomainCreateResult       `xml:"CommandResponse>DomainCreateResult"`
+	DomainsCheck       []DomainCheckResult       `xml:"CommandResponse>DomainCheckResult"`
+	DomainNSInfo       *DomainNSInfoResult       `xml:"CommandResponse>DomainNSInfoResult"`
+	DomainDNSSetCustom *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
+	Errors             []ApiError                `xml:"Errors>Error"`
 }
 
 // ApiError is the format of the error returned in the api responses.
