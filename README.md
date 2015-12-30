@@ -38,6 +38,6 @@ For more complete documentation, load up godoc and find the package.
 
 Pull requests welcome!
 
-## License
+## Attribution
 
-TBD, most concepts and code borrowed from http://github.com/rubyist/go-dnsimple
+Most concepts and code borrowed from the excellent [go-dnsimple](http://github.com/rubyist/go-dnsimple).
