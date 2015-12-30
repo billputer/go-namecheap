@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	domainsDNSGetHosts = "namecheap.domains.dns.getHosts"
-	domainsDNSSetHosts = "namecheap.domains.dns.setHosts"
+	domainsDNSGetHosts  = "namecheap.domains.dns.getHosts"
+	domainsDNSSetHosts  = "namecheap.domains.dns.setHosts"
+	domainsDNSSetCustom = "namecheap.domains.dns.setCustom"
 )
 
 type DomainDNSGetHostsResult struct {
@@ -72,4 +73,26 @@ func (client *Client) DomainDNSSetHosts(
 		return nil, err
 	}
 	return resp.DomainDNSSetHosts, nil
+}
+
+type DomainDNSSetCustomResult struct {
+	Domain string `xml:"Domain,attr"`
+	Update bool   `xml:"Update,attr"`
+}
+
+func (client *Client) DomainDNSSetCustom(sld, tld, nameservers string) (*DomainDNSSetCustomResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsDNSSetCustom,
+		method:  "GET",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("SLD", sld)
+	requestInfo.params.Set("TLD", tld)
+	requestInfo.params.Set("Nameservers", nameservers)
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+	return resp.DomainDNSSetCustom, nil
 }

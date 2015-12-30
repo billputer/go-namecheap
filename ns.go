@@ -5,8 +5,8 @@ import "net/url"
 const (
 	nsCreate  = "namecheap.domains.ns.create"
 	nsDelete  = "namecheap.domains.ns.delete"
-	nsGetInfo = "namecheap.domain.ns.getInfo"
-	nsUpdate  = "namecheap.domain.ns.update"
+	nsGetInfo = "namecheap.domains.ns.getInfo"
+	nsUpdate  = "namecheap.domains.ns.update"
 )
 
 type DomainNSInfoResult struct {

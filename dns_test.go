@@ -121,3 +121,45 @@ func TestDomainsDNSSetHosts(t *testing.T) {
 		t.Errorf("DomainsDNSSetHosts returned %+v, want %+v", hosts, want)
 	}
 }
+
+func TestDomainsDNSSetCustom(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `
+<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.dns.setCustom</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.dns.setCustom">
+    <DomainDNSSetCustomResult Domain="domain.com" Update="true" />
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>32.76</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// verify that the URL exactly matches...brittle, I know.
+		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.setCustom&Nameservers=dns1.name-servers.com,dns2.name-servers.com&SLD=domain&TLD=com&UserName=anUser"
+		if r.URL.String() != correctURL {
+			t.Errorf("URL = %v, want %v", r.URL, correctURL)
+		}
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, respXML)
+	})
+
+	result, err := client.DomainDNSSetCustom("domain", "com", "dns1.name-servers.com,dns2.name-servers.com")
+	if err != nil {
+		t.Errorf("DomainDNSSetCustom returned error: %v", err)
+	}
+
+	want := &DomainDNSSetCustomResult{
+		Domain: "domain.com",
+		Update: true,
+	}
+
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("DomainsDNSSetCustom returned %+v, want %+v", result, want)
+	}
+}
