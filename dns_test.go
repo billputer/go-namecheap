@@ -18,8 +18,8 @@ func TestDomainsDNSGetHosts(t *testing.T) {
   <RequestedCommand>namecheap.domains.dns.getHosts</RequestedCommand>
   <CommandResponse Type="namecheap.domains.dns.getHosts">
     <DomainDNSGetHostsResult Domain="domain.com" IsUsingOurDNS="true">
-      <Host HostId="12" Name="@" Type="A" Address="1.2.3.4" MXPref="10" TTL="1800" />
-      <Host HostId="14" Name="www" Type="A" Address="122.23.3.7" MXPref="10" TTL="1800" />
+      <host HostId="12" Name="@" Type="A" Address="1.2.3.4" MXPref="10" TTL="1800" />
+      <host HostId="14" Name="www" Type="A" Address="122.23.3.7" MXPref="10" TTL="1800" />
     </DomainDNSGetHostsResult>
   </CommandResponse>
   <Server>SERVER-NAME</Server>
