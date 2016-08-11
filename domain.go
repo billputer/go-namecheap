@@ -42,7 +42,7 @@ type DomainInfo struct {
 
 type DNSDetails struct {
 	ProviderType  string   `xml:"ProviderType,attr"`
-	IsUsingOurDNS bool     `xml:"IsUsingOurDNS"`
+	IsUsingOurDNS bool     `xml:"IsUsingOurDNS,attr"`
 	Nameservers   []string `xml:"Nameserver"`
 }
 

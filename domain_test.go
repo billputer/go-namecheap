@@ -132,7 +132,7 @@ func TestDomainGetInfo(t *testing.T) {
 		AutoRenew: false,
 		DNSDetails: DNSDetails{
 			ProviderType:  "FREE",
-			IsUsingOurDNS: false,
+			IsUsingOurDNS: true,
 			Nameservers: []string{
 				"dns1.registrar-servers.com",
 				"dns2.registrar-servers.com",
