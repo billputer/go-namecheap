@@ -89,7 +89,7 @@ func TestDomainsDNSSetHosts(t *testing.T) {
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// verify that the URL exactly matches...brittle, I know.
-		correctURL := "/?Address1=http%3A%2F%2Fwww.namecheap.com&ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.setHosts&HostName1=%40&MXPref1=0&RecordType1=URL&SLD=domain51&TLD=com&TTL1=100&UserName=anUser"
+		correctURL := "/?Address1=http%3A%2F%2Fwww.namecheap.com&ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.setHosts&HostName1=%40&RecordType1=URL&SLD=domain51&TLD=com&TTL1=100&UserName=anUser"
 		if r.URL.String() != correctURL {
 			t.Errorf("URL = %v, want %v", r.URL, correctURL)
 		}
