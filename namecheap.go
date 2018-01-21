@@ -49,6 +49,7 @@ type ApiResponse struct {
 	DomainsCheck       []DomainCheckResult       `xml:"CommandResponse>DomainCheckResult"`
 	DomainNSInfo       *DomainNSInfoResult       `xml:"CommandResponse>DomainNSInfoResult"`
 	DomainDNSSetCustom *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
+	UsersGetPricing    []UsersGetPricingResult   `xml:"CommandResponse>UserGetPricingResult>ProductType"`
 	Errors             []ApiError                `xml:"Errors>Error"`
 }
 
