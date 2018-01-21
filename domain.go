@@ -47,8 +47,14 @@ type DNSDetails struct {
 }
 
 type DomainCheckResult struct {
-	Domain    string `xml:"Domain,attr"`
-	Available bool   `xml:"Available,attr"`
+	Domain                   string  `xml:"Domain,attr"`
+	Available                bool    `xml:"Available,attr"`
+	IsPremiumName            bool    `xml:"IsPremiumName,attr"`
+	PremiumRegistrationPrice float32 `xml:"PremiumRegistrationPrice,attr"`
+	PremiumRenewalPrice      float32 `xml:"PremiumRenewalPrice,attr"`
+	PremiumRestorePrice      float32 `xml:"PremiumRestorePrice,attr"`
+	PremiumTransferPrice     float32 `xml:"PremiumTransferPrice,attr"`
+	IcannFee                 float32 `xml:"IcannFee,attr"`
 }
 
 type DomainCreateResult struct {
