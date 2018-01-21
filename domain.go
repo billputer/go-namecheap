@@ -12,6 +12,7 @@ const (
 	domainsGetInfo = "namecheap.domains.getInfo"
 	domainsCheck   = "namecheap.domains.check"
 	domainsCreate  = "namecheap.domains.create"
+	domainsTLDList = "namecheap.domains.getTldList"
 )
 
 // DomainGetListResult represents the data returned by 'domains.getList'
@@ -55,6 +56,10 @@ type DomainCheckResult struct {
 	PremiumRestorePrice      float32 `xml:"PremiumRestorePrice,attr"`
 	PremiumTransferPrice     float32 `xml:"PremiumTransferPrice,attr"`
 	IcannFee                 float32 `xml:"IcannFee,attr"`
+}
+
+type TLDListResult struct {
+	Name string `xml:"Name,attr"`
 }
 
 type DomainCreateResult struct {
@@ -114,6 +119,21 @@ func (client *Client) DomainsCheck(domainNames ...string) ([]DomainCheckResult, 
 	}
 
 	return resp.DomainsCheck, nil
+}
+
+func (client *Client) DomainsTLDList() ([]TLDListResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsTLDList,
+		method:  "GET",
+		params:  url.Values{},
+	}
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.TLDList, nil
 }
 
 func (client *Client) DomainCreate(domainName string, years int) (*DomainCreateResult, error) {
