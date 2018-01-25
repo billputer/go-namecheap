@@ -17,10 +17,10 @@ type UsersGetPricingResult struct {
 			Price []struct {
 				Duration     int     `xml:"Duration,attr"`
 				DurationType string  `xml:"DurationType,attr"`
-				Price        float32 `xml:"Price,attr"`
-				RegularPrice float32 `xml:"RegularPrice,attr"`
-				YourPrice    float32 `xml:"YourPrice,attr"`
-				CouponPrice  float32 `xml:"CouponPrice,attr"`
+				Price        float64 `xml:"Price,attr"`
+				RegularPrice float64 `xml:"RegularPrice,attr"`
+				YourPrice    float64 `xml:"YourPrice,attr"`
+				CouponPrice  float64 `xml:"CouponPrice,attr"`
 				Currency     string  `xml:"Currency,attr"`
 			} `xml:"Price"`
 		} `xml:"Product"`

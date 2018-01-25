@@ -51,11 +51,11 @@ type DomainCheckResult struct {
 	Domain                   string  `xml:"Domain,attr"`
 	Available                bool    `xml:"Available,attr"`
 	IsPremiumName            bool    `xml:"IsPremiumName,attr"`
-	PremiumRegistrationPrice float32 `xml:"PremiumRegistrationPrice,attr"`
-	PremiumRenewalPrice      float32 `xml:"PremiumRenewalPrice,attr"`
-	PremiumRestorePrice      float32 `xml:"PremiumRestorePrice,attr"`
-	PremiumTransferPrice     float32 `xml:"PremiumTransferPrice,attr"`
-	IcannFee                 float32 `xml:"IcannFee,attr"`
+	PremiumRegistrationPrice float64 `xml:"PremiumRegistrationPrice,attr"`
+	PremiumRenewalPrice      float64 `xml:"PremiumRenewalPrice,attr"`
+	PremiumRestorePrice      float64 `xml:"PremiumRestorePrice,attr"`
+	PremiumTransferPrice     float64 `xml:"PremiumTransferPrice,attr"`
+	IcannFee                 float64 `xml:"IcannFee,attr"`
 }
 
 type TLDListResult struct {
