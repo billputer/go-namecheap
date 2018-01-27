@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -115,10 +116,6 @@ func (client *Client) do(request *ApiRequest) (*ApiResponse, error) {
 }
 
 func (client *Client) makeRequest(request *ApiRequest) (*http.Request, error) {
-	url, err := url.Parse(client.BaseURL)
-	if err != nil {
-		return nil, err
-	}
 	p := request.params
 	p.Set("ApiUser", client.ApiUser)
 	p.Set("ApiKey", client.ApiToken)
@@ -126,19 +123,14 @@ func (client *Client) makeRequest(request *ApiRequest) (*http.Request, error) {
 	// This param is required by the API, but not actually used.
 	p.Set("ClientIp", "127.0.0.1")
 	p.Set("Command", request.command)
-	url.RawQuery = p.Encode()
 
-	// UGH
-	//
-	// Need this for the domain name part of the domains.check endpoint
-	url.RawQuery = strings.Replace(url.RawQuery, "%2C", ",", -1)
-
-	urlString := fmt.Sprintf("%s?%s", client.BaseURL, url.RawQuery)
-	req, err := http.NewRequest(request.method, urlString, nil)
+	b := p.Encode()
+	req, err := http.NewRequest(request.method, client.BaseURL, strings.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
-
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Length", strconv.Itoa(len(b)))
 	return req, nil
 }
 
