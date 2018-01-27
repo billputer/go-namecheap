@@ -3,6 +3,7 @@ package namecheap
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
 	"testing"
 )
@@ -30,11 +31,13 @@ func TestNSGetInfo(t *testing.T) {
 </ApiResponse>`
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.ns.getInfo&Nameserver=ns1.domain.com&SLD=domain&TLD=com&UserName=anUser"
-		if r.URL.String() != correctURL {
-			t.Errorf("URL = %v, want %v", r.URL, correctURL)
-		}
-		testMethod(t, r, "GET")
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.ns.getInfo")
+		correctParams.Set("Nameserver", "ns1.domain.com")
+		correctParams.Set("SLD", "domain")
+		correctParams.Set("TLD", "com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
 

@@ -30,7 +30,7 @@ type UsersGetPricingResult struct {
 func (client *Client) UsersGetPricing(productType string) ([]UsersGetPricingResult, error) {
 	requestInfo := &ApiRequest{
 		command: usersGetPricing,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 

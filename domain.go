@@ -76,7 +76,7 @@ type DomainCreateResult struct {
 func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsGetList,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 
@@ -91,7 +91,7 @@ func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 	requestInfo := &ApiRequest{
 		command: domainsGetInfo,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 
@@ -108,7 +108,7 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 func (client *Client) DomainsCheck(domainNames ...string) ([]DomainCheckResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsCheck,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 
@@ -124,7 +124,7 @@ func (client *Client) DomainsCheck(domainNames ...string) ([]DomainCheckResult, 
 func (client *Client) DomainsTLDList() ([]TLDListResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsTLDList,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 
