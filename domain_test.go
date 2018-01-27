@@ -255,3 +255,54 @@ func TestDomainCreate(t *testing.T) {
 		t.Fatalf("DomainCreate returned\n%+v,\nwant\n%+v", result, want)
 	}
 }
+
+func TestDomainsRenew(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.renew</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.renew">
+		<DomainRenewResult DomainName="domain1.com" DomainID="151378" Renew="true" OrderID="109116" TransactionID="119569" ChargedAmount="650.0000">
+			<DomainDetails>
+        <ExpiredDate>4/30/2021 11:31:13 AM</ExpiredDate>
+        <NumYears>0</NumYears>
+			</DomainDetails>
+		</DomainRenewResult>
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>32.76</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.renew")
+		correctParams.Set("DomainName", "domain1.com")
+		correctParams.Set("Years", "1")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	result, err := client.DomainRenew("domain1.com", 1)
+	if err != nil {
+		t.Errorf("DomainRenew returned error: %v", err)
+	}
+
+	// DomainCheckResult we expect, given the respXML above
+	want := &DomainRenewResult{
+		DomainID:      151378,
+		Name:          "domain1.com",
+		Renewed:       true,
+		ChargedAmount: 650,
+		TransactionID: 119569,
+		OrderID:       109116,
+		ExpireDate: "4/30/2021 11:31:13 AM",
+	}
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("DomainRenew returned %+v, want %+v", result, want)
+	}
+}

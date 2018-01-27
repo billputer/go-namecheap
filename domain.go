@@ -13,6 +13,7 @@ const (
 	domainsCheck   = "namecheap.domains.check"
 	domainsCreate  = "namecheap.domains.create"
 	domainsTLDList = "namecheap.domains.getTldList"
+	domainsRenew   = "namecheap.domains.renew"
 )
 
 // DomainGetListResult represents the data returned by 'domains.getList'
@@ -71,6 +72,16 @@ type DomainCreateResult struct {
 	TransactionID     int     `xml:"TransactionID,attr"`
 	WhoisGuardEnable  bool    `xml:"WhoisGuardEnable,attr"`
 	NonRealTimeDomain bool    `xml:"NonRealTimeDomain,attr"`
+}
+
+type DomainRenewResult struct {
+	DomainID      int     `xml:"DomainID,attr"`
+	Name          string  `xml:"DomainName,attr"`
+	Renewed       bool    `xml:"Renew,attr"`
+	ChargedAmount float64 `xml:"ChargedAmount,attr"`
+	OrderID       int     `xml:"OrderID,attr"`
+	TransactionID int     `xml:"TransactionID,attr"`
+	ExpireDate    string  `xml:"DomainDetails>ExpiredDate"`
 }
 
 func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
@@ -159,4 +170,21 @@ func (client *Client) DomainCreate(domainName string, years int) (*DomainCreateR
 	}
 
 	return resp.DomainCreate, nil
+}
+
+func (client *Client) DomainRenew(domainName string, years int) (*DomainRenewResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsRenew,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+	requestInfo.params.Set("Years", strconv.Itoa(years))
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainRenew, nil
 }
