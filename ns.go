@@ -19,7 +19,7 @@ type DomainNSInfoResult struct {
 func (client *Client) NSGetInfo(sld, tld, nameserver string) (*DomainNSInfoResult, error) {
 	requestInfo := &ApiRequest{
 		command: nsGetInfo,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("SLD", sld)
