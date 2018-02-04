@@ -77,7 +77,7 @@ type DomainCreateResult struct {
 	DomainID          int     `xml:"DomainID,attr"`
 	OrderID           int     `xml:"OrderID,attr"`
 	TransactionID     int     `xml:"TransactionID,attr"`
-	WhoisGuardEnable  bool    `xml:"WhoisGuardEnable,attr"`
+	WhoisguardEnable  bool    `xml:"WhoisguardEnable,attr"`
 	NonRealTimeDomain bool    `xml:"NonRealTimeDomain,attr"`
 }
 
