@@ -50,7 +50,7 @@ type ApiResponse struct {
 	DomainNSInfo       *DomainNSInfoResult       `xml:"CommandResponse>DomainNSInfoResult"`
 	DomainDNSSetCustom *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
 	UsersGetPricing    []UsersGetPricingResult   `xml:"CommandResponse>UserGetPricingResult>ProductType"`
-	Errors             []ApiError                `xml:"Errors>Error"`
+	Errors             ApiErrors                 `xml:"Errors>Error"`
 }
 
 // ApiError is the format of the error returned in the api responses.
@@ -61,6 +61,17 @@ type ApiError struct {
 
 func (err *ApiError) Error() string {
 	return err.Message
+}
+
+// ApiErrors holds multiple ApiError's but implements the error interface
+type ApiErrors []ApiError
+
+func (errs ApiErrors) Error() string {
+	errMsg := ""
+	for _, apiError := range errs {
+		errMsg += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
+	}
+	return errMsg
 }
 
 func NewClient(apiUser, apiToken, userName string) *Client {
@@ -104,11 +115,7 @@ func (client *Client) do(request *ApiRequest) (*ApiResponse, error) {
 	}
 
 	if resp.Status == "ERROR" {
-		errMsg := ""
-		for _, apiError := range resp.Errors {
-			errMsg += fmt.Sprintf("Error %d: %s\n", apiError.Number, apiError.Message)
-		}
-		return nil, errors.New(errMsg)
+		return nil, resp.Errors
 	}
 
 	return resp, nil
