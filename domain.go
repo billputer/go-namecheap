@@ -84,6 +84,12 @@ type DomainRenewResult struct {
 	ExpireDate    string  `xml:"DomainDetails>ExpiredDate"`
 }
 
+type DomainCreateOption struct {
+	AddFreeWhoisguard bool
+	WGEnabled         bool
+	Nameservers       []string
+}
+
 func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsGetList,
@@ -147,7 +153,7 @@ func (client *Client) DomainsTLDList() ([]TLDListResult, error) {
 	return resp.TLDList, nil
 }
 
-func (client *Client) DomainCreate(domainName string, years int) (*DomainCreateResult, error) {
+func (client *Client) DomainCreate(domainName string, years int, options ...DomainCreateOption) (*DomainCreateResult, error) {
 	if client.Registrant == nil {
 		return nil, errors.New("Registrant information on client cannot be empty")
 	}
@@ -160,6 +166,17 @@ func (client *Client) DomainCreate(domainName string, years int) (*DomainCreateR
 
 	requestInfo.params.Set("DomainName", domainName)
 	requestInfo.params.Set("Years", strconv.Itoa(years))
+	for _, opt := range options {
+		if opt.AddFreeWhoisguard {
+			requestInfo.params.Set("AddFreeWhoisguard", "yes")
+		}
+		if opt.WGEnabled {
+			requestInfo.params.Set("WGEnabled", "yes")
+		}
+		if len(opt.Nameservers) > 0 {
+			requestInfo.params.Set("Nameservers", strings.Join(opt.Nameservers, ","))
+		}
+	}
 	if err := client.Registrant.addValues(requestInfo.params); err != nil {
 		return nil, err
 	}

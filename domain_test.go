@@ -225,6 +225,9 @@ func TestDomainCreate(t *testing.T) {
 		correctParams.Set("Command", "namecheap.domains.create")
 		correctParams.Set("DomainName", "domain1.com")
 		correctParams.Set("Years", "2")
+		correctParams.Set("AddFreeWhoisguard", "yes")
+		correctParams.Set("WGEnabled", "yes")
+		correctParams.Set("Nameservers", "ns1.test.com,ns2.test.com")
 		fillInfo("AuxBilling")
 		fillInfo("Tech")
 		fillInfo("Admin")
@@ -241,7 +244,14 @@ func TestDomainCreate(t *testing.T) {
 		"+1.6613102107", "john@gmail.com",
 	)
 
-	result, err := client.DomainCreate("domain1.com", 2)
+	result, err := client.DomainCreate("domain1.com", 2, DomainCreateOption{
+		AddFreeWhoisguard: true,
+		WGEnabled:         true,
+		Nameservers: []string{
+			"ns1.test.com",
+			"ns2.test.com",
+		},
+	})
 	if err != nil {
 		t.Fatalf("DomainCreate returned error: %v", nil)
 	}
