@@ -35,7 +35,7 @@ type DomainDNSSetHostsResult struct {
 func (client *Client) DomainsDNSGetHosts(sld, tld string) (*DomainDNSGetHostsResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsDNSGetHosts,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("SLD", sld)
@@ -54,7 +54,7 @@ func (client *Client) DomainDNSSetHosts(
 ) (*DomainDNSSetHostsResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsDNSSetHosts,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("SLD", sld)
@@ -86,7 +86,7 @@ type DomainDNSSetCustomResult struct {
 func (client *Client) DomainDNSSetCustom(sld, tld, nameservers string) (*DomainDNSSetCustomResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsDNSSetCustom,
-		method:  "GET",
+		method:  "POST",
 		params:  url.Values{},
 	}
 	requestInfo.params.Set("SLD", sld)

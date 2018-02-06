@@ -34,12 +34,10 @@ func TestDomainsGetList(t *testing.T) {
     </ApiResponse>`
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// verify that the URL exactly matches...brittle, I know.
-		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getList&UserName=anUser"
-		if r.URL.String() != correctURL {
-			t.Errorf("URL = %v, want %v", r.URL, correctURL)
-		}
-		testMethod(t, r, "GET")
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.getList")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
 
@@ -105,12 +103,11 @@ func TestDomainGetInfo(t *testing.T) {
 </ApiResponse>`
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// verify that the URL exactly matches...brittle, I know.
-		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.getInfo&DomainName=example.com&UserName=anUser"
-		if r.URL.String() != correctURL {
-			t.Errorf("URL = %v, want %v", r.URL, correctURL)
-		}
-		testMethod(t, r, "GET")
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.getInfo")
+		correctParams.Set("DomainName", "example.com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
 
@@ -120,7 +117,7 @@ func TestDomainGetInfo(t *testing.T) {
 		t.Errorf("DomainGetInfo returned error: %v", err)
 	}
 
-	// DomainGetListResult we expect, given the respXML above
+	// DomainInfo we expect, given the respXML above
 	want := &DomainInfo{
 		ID:        57582,
 		Name:      "example.com",
@@ -166,21 +163,20 @@ func TestDomainsCheck(t *testing.T) {
 </ApiResponse>`
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// verify that the URL exactly matches...brittle, I know.
-		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.check&DomainList=domain1.com,availabledomain.com&UserName=anUser"
-		if r.URL.String() != correctURL {
-			t.Errorf("URL = %v, want %v", r.URL, correctURL)
-		}
-		testMethod(t, r, "GET")
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.check")
+		correctParams.Set("DomainList", "domain1.com,availabledomain.com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
 
-	domain, err := client.DomainsCheck("domain1.com", "availabledomain.com")
+	domains, err := client.DomainsCheck("domain1.com", "availabledomain.com")
 	if err != nil {
 		t.Errorf("DomainsCheck returned error: %v", err)
 	}
 
-	// DomainGetListResult we expect, given the respXML above
+	// DomainCheckResult we expect, given the respXML above
 	want := []DomainCheckResult{
 		DomainCheckResult{
 			Domain:    "domain1.com",
@@ -192,8 +188,8 @@ func TestDomainsCheck(t *testing.T) {
 		},
 	}
 
-	if !reflect.DeepEqual(domain, want) {
-		t.Errorf("DomainsCheck returned %+v, want %+v", domain, want)
+	if !reflect.DeepEqual(domains, want) {
+		t.Errorf("DomainsCheck returned %+v, want %+v", domains, want)
 	}
 }
 
@@ -214,22 +210,30 @@ func TestDomainCreate(t *testing.T) {
 	</ApiResponse>`
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// verify that the URL exactly matches...brittle, I know.
-		correctURL := "/?AdminAddress1=8939%20S.cross%20Blvd&ApiUser=anApiUser&ApiKey=anToken&UserName=anUser&Command=namecheap.domains.create&ClientIp=127.0.0.1&DomainName=domain1.com&Years=2&AuxBillingFirstName=John&AuxBillingLastName=Smith&AuxBillingAddress1=8939%20S.cross%20Blvd&AuxBillingStateProvince=CA&AuxBillingPostalCode=90045&AuxBillingCountry=US&AuxBillingPhone=+1.6613102107&AuxBillingEmailAddress=john@gmail.com&AuxBillingCity=CA&TechFirstName=John&TechLastName=Smith&TechAddress1=8939%20S.cross%20Blvd&TechStateProvince=CA&TechPostalCode=90045&TechCountry=US&TechPhone=+1.6613102107&TechEmailAddress=john@gmail.com&TechCity=CA&AdminFirstName=John&AdminLastName=Smith&AdminStateProvince=CA&AdminPostalCode=90045&AdminCountry=US&AdminPhone=+1.6613102107&AdminEmailAddress=john@gmail.com&AdminCity=CA&RegistrantFirstName=John&RegistrantLastName=Smith&RegistrantAddress1=8939%20S.cross%20Blvd&RegistrantStateProvince=CA&RegistrantPostalCode=90045&RegistrantCountry=US&RegistrantPhone=+1.6613102107&RegistrantEmailAddress=john@gmail.com&RegistrantCity=CA"
-		correctValues, err := url.ParseQuery(correctURL)
-		if err != nil {
-			t.Fatal(err)
+		correctParams := fillDefaultParams(url.Values{})
+		fillInfo := func(prefix string) {
+			correctParams.Set(prefix+"FirstName", "John")
+			correctParams.Set(prefix+"LastName", "Smith")
+			correctParams.Set(prefix+"Address1", "8939 S.cross Blvd")
+			correctParams.Set(prefix+"StateProvince", "CA")
+			correctParams.Set(prefix+"PostalCode", "90045")
+			correctParams.Set(prefix+"Country", "US")
+			correctParams.Set(prefix+"Phone", "+1.6613102107")
+			correctParams.Set(prefix+"EmailAddress", "john@gmail.com")
+			correctParams.Set(prefix+"City", "CA")
 		}
-		values, err := url.ParseQuery(r.URL.String())
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if !reflect.DeepEqual(values, correctValues) {
-			t.Fatalf("URL = \n%v,\nwant \n%v", values, correctValues)
-		}
+		correctParams.Set("Command", "namecheap.domains.create")
+		correctParams.Set("DomainName", "domain1.com")
+		correctParams.Set("Years", "2")
+		correctParams.Set("AddFreeWhoisguard", "yes")
+		correctParams.Set("WGEnabled", "yes")
+		correctParams.Set("Nameservers", "ns1.test.com,ns2.test.com")
+		fillInfo("AuxBilling")
+		fillInfo("Tech")
+		fillInfo("Admin")
+		fillInfo("Registrant")
+		testBody(t, r, correctParams)
 		testMethod(t, r, "POST")
-
 		fmt.Fprint(w, respXML)
 	})
 
@@ -237,20 +241,78 @@ func TestDomainCreate(t *testing.T) {
 		"John", "Smith",
 		"8939 S.cross Blvd", "",
 		"CA", "CA", "90045", "US",
-		" 1.6613102107", "john@gmail.com",
+		"+1.6613102107", "john@gmail.com",
 	)
 
-	result, err := client.DomainCreate("domain1.com", 2)
+	result, err := client.DomainCreate("domain1.com", 2, DomainCreateOption{
+		AddFreeWhoisguard: true,
+		WGEnabled:         true,
+		Nameservers: []string{
+			"ns1.test.com",
+			"ns2.test.com",
+		},
+	})
 	if err != nil {
 		t.Fatalf("DomainCreate returned error: %v", nil)
 	}
 
-	// DomainGetListResult we expect, given the respXML above
+	// DomainCreateResult we expect, given the respXML above
 	want := &DomainCreateResult{
 		"domain1.com", true, 20.36, 9007, 196074, 380716, false, false,
 	}
 
 	if !reflect.DeepEqual(result, want) {
 		t.Fatalf("DomainCreate returned\n%+v,\nwant\n%+v", result, want)
+	}
+}
+
+func TestDomainsRenew(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.renew</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.renew">
+		<DomainRenewResult DomainName="domain1.com" DomainID="151378" Renew="true" OrderID="109116" TransactionID="119569" ChargedAmount="650.0000">
+			<DomainDetails>
+        <ExpiredDate>4/30/2021 11:31:13 AM</ExpiredDate>
+        <NumYears>0</NumYears>
+			</DomainDetails>
+		</DomainRenewResult>
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>32.76</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.renew")
+		correctParams.Set("DomainName", "domain1.com")
+		correctParams.Set("Years", "1")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	result, err := client.DomainRenew("domain1.com", 1)
+	if err != nil {
+		t.Errorf("DomainRenew returned error: %v", err)
+	}
+
+	// DomainCheckResult we expect, given the respXML above
+	want := &DomainRenewResult{
+		DomainID:      151378,
+		Name:          "domain1.com",
+		Renewed:       true,
+		ChargedAmount: 650,
+		TransactionID: 119569,
+		OrderID:       109116,
+		ExpireDate:    "4/30/2021 11:31:13 AM",
+	}
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("DomainRenew returned %+v, want %+v", result, want)
 	}
 }

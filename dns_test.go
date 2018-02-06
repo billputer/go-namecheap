@@ -3,6 +3,7 @@ package namecheap
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"reflect"
 	"testing"
 )
@@ -28,12 +29,12 @@ func TestDomainsDNSGetHosts(t *testing.T) {
 </ApiResponse>`
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// verify that the URL exactly matches...brittle, I know.
-		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.getHosts&SLD=domain&TLD=com&UserName=anUser"
-		if r.URL.String() != correctURL {
-			t.Errorf("URL = %v, want %v", r.URL, correctURL)
-		}
-		testMethod(t, r, "GET")
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.dns.getHosts")
+		correctParams.Set("SLD", "domain")
+		correctParams.Set("TLD", "com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
 
@@ -88,12 +89,16 @@ func TestDomainsDNSSetHosts(t *testing.T) {
 </ApiResponse>`
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// verify that the URL exactly matches...brittle, I know.
-		correctURL := "/?Address1=http%3A%2F%2Fwww.namecheap.com&ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.setHosts&HostName1=%40&RecordType1=URL&SLD=domain51&TLD=com&TTL1=100&UserName=anUser"
-		if r.URL.String() != correctURL {
-			t.Errorf("URL = %v, want %v", r.URL, correctURL)
-		}
-		testMethod(t, r, "GET")
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.dns.setHosts")
+		correctParams.Set("Address1", "http://www.namecheap.com")
+		correctParams.Set("HostName1", "@")
+		correctParams.Set("RecordType1", "URL")
+		correctParams.Set("TTL1", "100")
+		correctParams.Set("SLD", "domain51")
+		correctParams.Set("TLD", "com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
 
@@ -140,12 +145,13 @@ func TestDomainsDNSSetCustom(t *testing.T) {
 </ApiResponse>`
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// verify that the URL exactly matches...brittle, I know.
-		correctURL := "/?ApiKey=anToken&ApiUser=anApiUser&ClientIp=127.0.0.1&Command=namecheap.domains.dns.setCustom&Nameservers=dns1.name-servers.com,dns2.name-servers.com&SLD=domain&TLD=com&UserName=anUser"
-		if r.URL.String() != correctURL {
-			t.Errorf("URL = %v, want %v", r.URL, correctURL)
-		}
-		testMethod(t, r, "GET")
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.dns.setCustom")
+		correctParams.Set("Nameservers", "dns1.name-servers.com,dns2.name-servers.com")
+		correctParams.Set("SLD", "domain")
+		correctParams.Set("TLD", "com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
 
