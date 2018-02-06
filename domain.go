@@ -40,12 +40,19 @@ type DomainInfo struct {
 	IsLocked   bool       `xml:"IsLocked,attr"`
 	AutoRenew  bool       `xml:"AutoRenew,attr"`
 	DNSDetails DNSDetails `xml:"DnsDetails"`
+	Whoisguard Whoisguard `xml:"Whoisguard"`
 }
 
 type DNSDetails struct {
 	ProviderType  string   `xml:"ProviderType,attr"`
 	IsUsingOurDNS bool     `xml:"IsUsingOurDNS,attr"`
 	Nameservers   []string `xml:"Nameserver"`
+}
+
+type Whoisguard struct {
+	Enabled     bool   `xml:"Enabled,attr"`
+	ID          int64  `xml:"ID"`
+	ExpiredDate string `xml:"ExpiredDate"`
 }
 
 type DomainCheckResult struct {

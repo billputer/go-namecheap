@@ -138,6 +138,11 @@ func TestDomainGetInfo(t *testing.T) {
 				"dns5.registrar-servers.com",
 			},
 		},
+		Whoisguard: Whoisguard{
+			Enabled:     true,
+			ID:          53536,
+			ExpiredDate: "11/04/2015",
+		},
 	}
 
 	if !reflect.DeepEqual(domain, want) {
