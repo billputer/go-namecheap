@@ -1,3 +1,6 @@
+// Package namecheap implements a client for the Namecheap API.
+//
+// In order to use this package you will need a Namecheap account and your API Token.
 package namecheap
 
 import (
