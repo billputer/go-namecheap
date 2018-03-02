@@ -97,12 +97,14 @@ type DomainCreateOption struct {
 	Nameservers       []string
 }
 
-func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
+func (client *Client) DomainsGetList(currentPage int, pageSize int) ([]DomainGetListResult, error) {
 	requestInfo := &ApiRequest{
 		command: domainsGetList,
 		method:  "POST",
 		params:  url.Values{},
 	}
+	requestInfo.params.Set("CurrentPage", currentPage)
+	requestInfo.params.Set("PageSize", pageSize)
 
 	resp, err := client.do(requestInfo)
 	if err != nil {
