@@ -97,14 +97,18 @@ type DomainCreateOption struct {
 	Nameservers       []string
 }
 
-func (client *Client) DomainsGetList(currentPage int, pageSize int) ([]DomainGetListResult, error) {
+func (client *Client) DomainsGetList(currentPage uint, pageSize uint) ([]DomainGetListResult, error) {
+	if pageSize > 100 {
+		// Maximum page size supported by the Namecheap API
+		pageSize = 100
+	}
 	requestInfo := &ApiRequest{
 		command: domainsGetList,
 		method:  "POST",
 		params:  url.Values{},
 	}
-	requestInfo.params.Set("CurrentPage", currentPage)
-	requestInfo.params.Set("PageSize", pageSize)
+	requestInfo.params.Set("CurrentPage", strconv.Itoa(int(currentPage)))
+	requestInfo.params.Set("PageSize", strconv.Itoa(int(pageSize)))
 
 	resp, err := client.do(requestInfo)
 	if err != nil {
