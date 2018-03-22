@@ -1,6 +1,7 @@
 package namecheap
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -82,4 +83,59 @@ func TestMakeRequest(t *testing.T) {
 	correctParams := fillDefaultParams(url.Values{})
 	correctParams.Set("Command", "namecheap.domains.getList")
 	testBody(t, req, correctParams)
+}
+
+// Verify that Do correctly handles errors and invalid returns
+func TestDo(t *testing.T) {
+	setup()
+	defer teardown()
+
+	state := "500"
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		switch state {
+		case "500":
+			w.WriteHeader(http.StatusInternalServerError)
+		case "invalid":
+			fmt.Fprintln(w, "<invalid />")
+		case "error":
+			fmt.Fprintln(w, `<?xml version="1.0" encoding="utf-8"?><ApiResponse Status="ERROR" xmlns="http://api.namecheap.com/xml.response">
+				<Errors>
+					<Error Number="1">Some Error</Error>
+				</Errors>
+			</ApiResponse>`)
+		default:
+			fmt.Fprintln(w, `<?xml version="1.0" encoding="utf-8"?><ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response"></ApiResponse>`)
+		}
+	})
+
+	requestInfo := &ApiRequest{
+		method:  "POST",
+		command: "namecheap.domains.getList",
+		params:  url.Values{},
+	}
+	_, err := client.do(requestInfo)
+	if err == nil {
+		t.Errorf("Expected error for non-200 response, got %v", err)
+	}
+
+	state = "invalid"
+	_, err = client.do(requestInfo)
+	if err == nil {
+		t.Errorf("Expected error for invalid response, got %v", err)
+	}
+
+	state = "error"
+	_, err = client.do(requestInfo)
+	if err == nil || err.Error() != "Error 1: Some Error\n" {
+		t.Errorf("Expected error for error response, got %v", err)
+	}
+
+	state = "ok"
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		t.Errorf("Expected nil error, got %v", err)
+	}
+	if resp == nil {
+		t.Errorf("Expected non-nil response, got %v", resp)
+	}
 }

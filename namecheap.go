@@ -110,9 +110,12 @@ func (client *Client) do(request *ApiRequest) (*ApiResponse, error) {
 		return nil, errors.New("request method cannot be blank")
 	}
 
-	body, _, err := client.sendRequest(request)
+	body, status, err := client.sendRequest(request)
 	if err != nil {
 		return nil, err
+	}
+	if status != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code from api: %d", status)
 	}
 
 	resp := new(ApiResponse)
@@ -120,6 +123,9 @@ func (client *Client) do(request *ApiRequest) (*ApiResponse, error) {
 		return nil, err
 	}
 
+	if resp.Status == "" {
+		return nil, errors.New("failed to parse xml from api")
+	}
 	if resp.Status == "ERROR" {
 		return nil, resp.Errors
 	}
