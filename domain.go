@@ -202,6 +202,30 @@ func (client *Client) DomainCreate(domainName string, years int, options ...Doma
 		if len(opt.Nameservers) > 0 {
 			requestInfo.params.Set("Nameservers", strings.Join(opt.Nameservers, ","))
 		}
+		if opt.RegistrantNexus {
+			requestInfo.params.Set("RegistrantNexus", opt.RegistrantNexus)
+		}
+		if opt.RegistrantPurpose {
+			requestInfo.params.Set("RegistrantPurpose", opt.RegistrantPurpose)
+		}
+		if opt.COUKLegalType {
+			requestInfo.params.Set("COUKLegalType", opt.COUKLegalType)
+		}
+		if opt.COUKCompanyID {
+			requestInfo.params.Set("COUKCompanyID", opt.COUKCompanyID)
+		}
+		if opt.COUKRegisteredfor {
+			requestInfo.params.Set("COUKRegisteredfor", opt.COUKRegisteredfor)
+		}
+		if opt.EUAgreeWhoisPolicy {
+			requestInfo.params.Set("EUAgreeWhoisPolicy", opt.EUAgreeWhoisPolicy)
+		}
+		if opt.EUAgreeDeletePolicy {
+			requestInfo.params.Set("EUAgreeDeletePolicy", opt.EUAgreeDeletePolicy)
+		}
+		if opt.EUAdrLang {
+			requestInfo.params.Set("EUAdrLang", opt.EUAdrLang)
+		}
 	}
 	if err := client.Registrant.addValues(requestInfo.params); err != nil {
 		return nil, err
