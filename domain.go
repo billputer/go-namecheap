@@ -92,9 +92,28 @@ type DomainRenewResult struct {
 }
 
 type DomainCreateOption struct {
-	AddFreeWhoisguard bool
-	WGEnabled         bool
-	Nameservers       []string
+	AddFreeWhoisguard      bool
+	WGEnabled              bool
+	Nameservers            []string
+	RegistrantNexus        string
+	RegistrantNexusCountry string
+	RegistrantPurpose      string
+	EUAgreeWhoisPolicy     string
+	EUAgreeDeletePolicy    string
+	EUAdrLang              string
+	NUOrgNo                string
+	NUvatNo                string
+	CIRALegalType          string
+	CIRAWhoisDisplay       string
+	CIRAAgreementVersion   string
+	CIRAAgreementValue     string
+	CIRALanguage           string
+	COUKLegalType          string
+	COUKCompanyID          string
+	COUKRegisteredfor      string
+	MEUKLegalType          string
+	MEUKCompanyID          string
+	MEUKRegisteredfor      string
 }
 
 func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
