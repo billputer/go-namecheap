@@ -51,6 +51,7 @@ type ApiResponse struct {
 	DomainsCheck       []DomainCheckResult       `xml:"CommandResponse>DomainCheckResult"`
 	DomainNSInfo       *DomainNSInfoResult       `xml:"CommandResponse>DomainNSInfoResult"`
 	DomainDNSSetCustom *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
+	SslCreate          *SslCreateResult          `xml:"CommandResponse>SSLCreateResult"`
 	SslCertificates    []SslGetListResult        `xml:"CommandResponse>SSLListResult>SSL"`
 	UsersGetPricing    []UsersGetPricingResult   `xml:"CommandResponse>UserGetPricingResult>ProductType"`
 	WhoisguardList     []WhoisguardGetListResult `xml:"CommandResponse>WhoisguardGetListResult>Whoisguard"`
