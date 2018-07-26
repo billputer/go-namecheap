@@ -119,7 +119,7 @@ type DomainCreateOption struct {
 	ORGUKRegisteredfor     string
 }
 
-func (client *Client) DomainsGetList(currentPage int, pageSize int) ([]DomainGetListResult, error) {
+func (client *Client) DomainsGetList(currentPage int, pageSize int) ([]DomainGetListResult, *Paging, error) {
 	if pageSize > 100 {
 		// Maximum page size supported by the Namecheap API
 		pageSize = 100
@@ -133,10 +133,10 @@ func (client *Client) DomainsGetList(currentPage int, pageSize int) ([]DomainGet
 	requestInfo.params.Set("PageSize", strconv.Itoa(pageSize))
 	resp, err := client.do(requestInfo)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return resp.Domains, nil
+	return resp.Domains, resp.Paging, nil
 }
 
 func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {

@@ -38,6 +38,12 @@ type ApiRequest struct {
 	params  url.Values
 }
 
+type Paging struct {
+	TotalItems  int `xml:"TotalItems,attr"`
+	CurrentPage int `xml:"CurrentPage,attr"`
+	PageSize    int `xml:"PageSize,attr"`
+}
+
 type ApiResponse struct {
 	Status             string                    `xml:"Status,attr"`
 	Command            string                    `xml:"RequestedCommand"`
@@ -56,6 +62,7 @@ type ApiResponse struct {
 	WhoisguardEnable   whoisguardEnableResult    `xml:"CommandResponse>WhoisguardEnableResult"`
 	WhoisguardDisable  whoisguardDisableResult   `xml:"CommandResponse>WhoisguardDisableResult"`
 	WhoisguardRenew    *WhoisguardRenewResult    `xml:"CommandResponse>WhoisguardRenewResult"`
+	Paging             *Paging                   `xml:"CommandResponse>Paging"`
 	Errors             ApiErrors                 `xml:"Errors>Error"`
 }
 
