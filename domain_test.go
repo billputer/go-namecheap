@@ -42,7 +42,7 @@ func TestDomainsGetList(t *testing.T) {
 		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
-	domains, err := client.DomainsGetList(1, 100)
+	domains, _, err := client.DomainsGetList(1, 100)
 
 	if err != nil {
 		t.Errorf("DomainsGetList returned error: %v", err)
