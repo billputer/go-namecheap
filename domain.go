@@ -114,15 +114,23 @@ type DomainCreateOption struct {
 	MEUKLegalType          string
 	MEUKCompanyID          string
 	MEUKRegisteredfor      string
+	ORGUKLegalType         string
+	ORGUKCompanyID         string
+	ORGUKRegisteredfor     string
 }
 
-func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
+func (client *Client) DomainsGetList(currentPage int, pageSize int) ([]DomainGetListResult, error) {
+	if pageSize > 100 {
+		// Maximum page size supported by the Namecheap API
+		pageSize = 100
+	}
 	requestInfo := &ApiRequest{
 		command: domainsGetList,
 		method:  "POST",
 		params:  url.Values{},
 	}
-
+	requestInfo.params.Set("CurrentPage", strconv.Itoa(currentPage))
+	requestInfo.params.Set("PageSize", strconv.Itoa(pageSize))
 	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
@@ -205,26 +213,35 @@ func (client *Client) DomainCreate(domainName string, years int, options ...Doma
 		if opt.RegistrantNexus != "" {
 			requestInfo.params.Set("RegistrantNexus", opt.RegistrantNexus)
 		}
-		if opt.RegistrantPurpose != ""  {
+		if opt.RegistrantPurpose != "" {
 			requestInfo.params.Set("RegistrantPurpose", opt.RegistrantPurpose)
 		}
-		if opt.COUKLegalType != ""  {
+		if opt.COUKLegalType != "" {
 			requestInfo.params.Set("COUKLegalType", opt.COUKLegalType)
 		}
-		if opt.COUKCompanyID != ""  {
+		if opt.COUKCompanyID != "" {
 			requestInfo.params.Set("COUKCompanyID", opt.COUKCompanyID)
 		}
-		if opt.COUKRegisteredfor != ""  {
+		if opt.COUKRegisteredfor != "" {
 			requestInfo.params.Set("COUKRegisteredfor", opt.COUKRegisteredfor)
 		}
-		if opt.EUAgreeWhoisPolicy != ""  {
+		if opt.EUAgreeWhoisPolicy != "" {
 			requestInfo.params.Set("EUAgreeWhoisPolicy", opt.EUAgreeWhoisPolicy)
 		}
-		if opt.EUAgreeDeletePolicy != ""  {
+		if opt.EUAgreeDeletePolicy != "" {
 			requestInfo.params.Set("EUAgreeDeletePolicy", opt.EUAgreeDeletePolicy)
 		}
-		if opt.EUAdrLang != ""  {
+		if opt.EUAdrLang != "" {
 			requestInfo.params.Set("EUAdrLang", opt.EUAdrLang)
+		}
+		if opt.ORGUKCompanyID != "" {
+			requestInfo.params.Set("ORGUKCompanyID", opt.ORGUKCompanyID)
+		}
+		if opt.ORGUKLegalType != "" {
+			requestInfo.params.Set("ORGUKLegalType", opt.ORGUKLegalType)
+		}
+		if opt.ORGUKRegisteredfor != "" {
+			requestInfo.params.Set("ORGUKRegisteredfor", opt.ORGUKRegisteredfor)
 		}
 	}
 	if err := client.Registrant.addValues(requestInfo.params); err != nil {

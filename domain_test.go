@@ -25,7 +25,7 @@ func TestDomainsGetList(t *testing.T) {
         <Paging>
           <TotalItems>12</TotalItems>
           <CurrentPage>1</CurrentPage>
-          <PageSize>20</PageSize>
+          <PageSize>100</PageSize>
         </Paging>
       </CommandResponse>
       <Server>WEB1-SANDBOX1</Server>
@@ -36,12 +36,13 @@ func TestDomainsGetList(t *testing.T) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		correctParams := fillDefaultParams(url.Values{})
 		correctParams.Set("Command", "namecheap.domains.getList")
+		correctParams.Set("CurrentPage", "1")
+		correctParams.Set("PageSize", "100")
 		testBody(t, r, correctParams)
 		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
-
-	domains, err := client.DomainsGetList()
+	domains, err := client.DomainsGetList(1, 100)
 
 	if err != nil {
 		t.Errorf("DomainsGetList returned error: %v", err)
