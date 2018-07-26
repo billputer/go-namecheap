@@ -39,9 +39,9 @@ type ApiRequest struct {
 }
 
 type Paging struct {
-	TotalItems  int `xml:"TotalItems,attr"`
-	CurrentPage int `xml:"CurrentPage,attr"`
-	PageSize    int `xml:"PageSize,attr"`
+	TotalItems  int `xml:"TotalItems"`
+	CurrentPage int `xml:"CurrentPage"`
+	PageSize    int `xml:"PageSize"`
 }
 
 type ApiResponse struct {

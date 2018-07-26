@@ -42,14 +42,25 @@ func TestDomainsGetList(t *testing.T) {
 		testMethod(t, r, "POST")
 		fmt.Fprint(w, respXML)
 	})
-	domains, _, err := client.DomainsGetList(1, 100)
+	domains, paging, err := client.DomainsGetList(1, 100)
 
 	if err != nil {
 		t.Errorf("DomainsGetList returned error: %v", err)
 	}
 
+	// Paging we expect, given the respXML above
+	wantP := Paging{
+		TotalItems:  12,
+		CurrentPage: 1,
+		PageSize:    100,
+	}
+
+	if !reflect.DeepEqual(*paging, wantP) {
+		t.Errorf("paging returned %+v, want %+v", *paging, wantP)
+	}
+
 	// DomainGetListResult we expect, given the respXML above
-	want := []DomainGetListResult{{
+	wantD := []DomainGetListResult{{
 		ID:         57579,
 		Name:       "example.com",
 		User:       "anUser",
@@ -61,8 +72,8 @@ func TestDomainsGetList(t *testing.T) {
 		WhoisGuard: "ENABLED",
 	}}
 
-	if !reflect.DeepEqual(domains, want) {
-		t.Errorf("DomainsGetList returned %+v, want %+v", domains, want)
+	if !reflect.DeepEqual(domains, wantD) {
+		t.Errorf("DomainsGetList returned %+v, want %+v", domains, wantD)
 	}
 }
 
