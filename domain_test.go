@@ -36,7 +36,7 @@ func TestDomainsGetList(t *testing.T) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		correctParams := fillDefaultParams(url.Values{})
 		correctParams.Set("Command", "namecheap.domains.getList")
-		correctParams.Set("CurrentPage", "1")
+		correctParams.Set("Page", "1")
 		correctParams.Set("PageSize", "100")
 		testBody(t, r, correctParams)
 		testMethod(t, r, "POST")
