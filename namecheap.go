@@ -122,7 +122,7 @@ func (client *Client) do(request *ApiRequest) (*ApiResponse, error) {
 		return nil, err
 	}
 	if status != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code from api: %d", status)
+		return nil, fmt.Errorf("unexpected status code from api: %d - %s", status, body)
 	}
 
 	resp := new(ApiResponse)
