@@ -6,9 +6,11 @@ import (
 )
 
 const (
-	sslActivate = "namecheap.ssl.activate"
-	sslCreate   = "namecheap.ssl.create"
-	sslGetList  = "namecheap.ssl.getList"
+	sslActivate             = "namecheap.ssl.activate"
+	sslCreate               = "namecheap.ssl.create"
+	sslGetList              = "namecheap.ssl.getList"
+	sslGetApproverEmailList = "namecheap.ssl.getApproverEmailList"
+	sslGetInfo              = "namecheap.ssl.getInfo"
 )
 
 // SslGetListResult represents the data returned by 'domains.getList'
@@ -29,6 +31,57 @@ type SslCreateResult struct {
 	TransactionId  int              `xml:"TransactionId,attr"`
 	ChargedAmount  float64          `xml:"ChargedAmount,attr"`
 	SSLCertificate []SSLCertificate `xml:"SSLCertificate"`
+}
+
+type SslGetApproverEmailListResult struct {
+	DomainEmails  []string `xml:"Domainemails>email"`
+	GenericEmails []string `xml:"Genericemails>email"`
+	ManualEmails  []string `xml:"Manualemails>email"`
+}
+
+type SslGetInfoResult struct {
+	Status               string                `xml:"Status,attr"`
+	StatusDescription    string                `xml:"StatusDescription,attr"`
+	Type                 string                `xml:"Type,attr"`
+	IssuedOn             string                `xml:"IssuedOn,attr"`
+	Expires              string                `xml:"Expires,attr"`
+	ActivationExpireDate string                `xml:"ActivationExpireDate,attr"`
+	OrderID              int                   `xml:"OrderId,attr"`
+	ReplacedBy           int                   `xml:"ReplacedBy,attr"`
+	SANSCount            int                   `xml:"SANSCount,attr"`
+	CertificateDetails   SslCertificateDetails `xml:"CertificateDetails"`
+	Provider             SslProvider           `xml:"Provider"`
+}
+
+type SslCertificateDetails struct {
+	CSR                string                 `xml:"CSR"`
+	ApproverEmail      string                 `xml:"ApproverEmail"`
+	CommonName         string                 `xml:"CommonName"`
+	AdministratorName  string                 `xml:"AdministratorName"`
+	AdministratorEmail string                 `xml:"AdministratorEmail"`
+	Certificates       SslGetInfoCertificates `xml:"Certificates"`
+}
+
+type SslGetInfoCertificates struct {
+	CertificateReturned bool     `xml:"CertificateReturned,attr"`
+	ReturnType          string   `xml:"ReturnType,attr"`
+	Certificate         []string `xml:"Certificate"`
+
+	CACertificates SslCACertificates `xml:"CaCertificates"`
+}
+
+type SslCACertificates struct {
+	Certificate []SslCACertificate `xml:"Certificate"`
+}
+
+type SslCACertificate struct {
+	Type        string `xml:"Type,attr"`
+	Certificate string `xml:"Certificate"`
+}
+
+type SslProvider struct {
+	OrderID int    `xml:"OrderID"`
+	Name    string `xml:"Name"`
 }
 
 type SSLCertificate struct {
@@ -83,6 +136,45 @@ func (client *Client) SslGetList() ([]SslGetListResult, error) {
 	}
 
 	return resp.SslCertificates, nil
+}
+
+// SslGetApproverEmailList returns email addresses that can be used for domain
+// control validation
+func (client *Client) SslGetApproverEmailList(domainName, certificateType string) (*SslGetApproverEmailListResult, error) {
+	requestInfo := &ApiRequest{
+		command: sslGetApproverEmailList,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+	requestInfo.params.Set("CertificateType", certificateType)
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.SslGetApproverEmailList, nil
+}
+
+// SslGetInfo returns information about a purchased certificate
+func (client *Client) SslGetInfo(certificateID int) (*SslGetInfoResult, error) {
+	requestInfo := &ApiRequest{
+		command: sslGetInfo,
+		method:  "GET",
+		params:  url.Values{},
+	}
+
+	requestInfo.params.Set("CertificateID", strconv.Itoa(certificateID))
+	requestInfo.params.Set("Returncertificate", "true")
+	requestInfo.params.Set("Returntype", "Individual")
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.SslGetInfo, nil
 }
 
 // SslCreate creates a new SSL certificate by purchasing it using the account funds
