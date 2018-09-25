@@ -8,3 +8,4 @@ go:
 
 install:
   - go get github.com/golang/lint/golint
+  - go get gopkg.in/d4l3k/messagediff.v1
