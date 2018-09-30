@@ -56,6 +56,7 @@ type ApiResponse struct {
 	SslCertificates         []SslGetListResult             `xml:"CommandResponse>SSLListResult>SSL"`
 	SslGetApproverEmailList *SslGetApproverEmailListResult `xml:"CommandResponse>GetApproverEmailListResult"`
 	SslGetInfo              *SslGetInfoResult              `xml:"CommandResponse>SSLGetInfoResult"`
+	SslResendApproverEmail  *SslResendApproverEmailResult  `xml:"CommandResponse>SSLResendApproverEmailResult"`
 	UsersGetPricing         []UsersGetPricingResult        `xml:"CommandResponse>UserGetPricingResult>ProductType"`
 	WhoisguardList          []WhoisguardGetListResult      `xml:"CommandResponse>WhoisguardGetListResult>Whoisguard"`
 	WhoisguardEnable        whoisguardEnableResult         `xml:"CommandResponse>WhoisguardEnableResult"`

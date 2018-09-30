@@ -11,7 +11,13 @@ const (
 	sslGetList              = "namecheap.ssl.getList"
 	sslGetApproverEmailList = "namecheap.ssl.getApproverEmailList"
 	sslGetInfo              = "namecheap.ssl.getInfo"
+	sslResendApproverEmail  = "namecheap.ssl.resendApproverEmail"
 )
+
+type SslResendApproverEmailResult struct {
+	ID        int  `xml:"ID,attr"`
+	IsSuccess bool `xml:"IsSuccess,attr"`
+}
 
 // SslGetListResult represents the data returned by 'domains.getList'
 type SslGetListResult struct {
@@ -136,6 +142,23 @@ func (client *Client) SslGetList() ([]SslGetListResult, error) {
 	}
 
 	return resp.SslCertificates, nil
+}
+
+func (client *Client) SslResendApproverEmail(certificateID int) (*SslResendApproverEmailResult, error) {
+	requestInfo := &ApiRequest{
+		command: sslResendApproverEmail,
+		method:  "GET",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("CertificateID", strconv.Itoa(certificateID))
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.SslResendApproverEmail, nil
+
 }
 
 // SslGetApproverEmailList returns email addresses that can be used for domain

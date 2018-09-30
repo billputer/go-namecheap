@@ -301,6 +301,48 @@ cdnUl4XmGFO3
 	}
 }
 
+func TestSslResendApproverEmail(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `
+<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
+    <Errors/>
+    <Warnings/>
+    <RequestedCommand>namecheap.ssl.resendApproverEmail</RequestedCommand>
+    <CommandResponse Type="namecheap.ssl.resendApproverEmail">
+        <SSLResendApproverEmailResult ID="1044702" IsSuccess="true"/>
+    </CommandResponse>
+    <Server>4df13e5a691e</Server>
+    <GMTTimeDifference>--5:00</GMTTimeDifference>
+    <ExecutionTime>1.242</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.ssl.resendApproverEmail")
+		correctParams.Set("CertificateID", "1044702")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, respXML)
+	})
+
+	resendResult, err := client.SslResendApproverEmail(1044702)
+	if err != nil {
+		t.Errorf("SslCreate returned error: %v", err)
+	}
+
+	want := &SslResendApproverEmailResult{
+		ID:        1044702,
+		IsSuccess: true,
+	}
+
+	if !reflect.DeepEqual(resendResult, want) {
+		t.Errorf("SslResendApproverEmail returned %+v, want %+v", resendResult, want)
+	}
+}
+
 func TestSslCreate(t *testing.T) {
 	setup()
 	defer teardown()
