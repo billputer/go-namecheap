@@ -2,6 +2,7 @@ package namecheap
 
 import (
 	"fmt"
+	"gopkg.in/d4l3k/messagediff.v1"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -60,6 +61,285 @@ func TestSslGetList(t *testing.T) {
 
 	if !reflect.DeepEqual(certificates, want) {
 		t.Errorf("SslGetList returned %+v, want %+v", certificates, want)
+	}
+}
+
+func TestSslGetApproverEmailList(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `
+<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.ssl.getApproverEmailList</RequestedCommand>
+  <CommandResponse Type="namecheap.ssl.getApproverEmailList">
+    <GetApproverEmailListResult Domain="domain.com">
+      <Domainemails>
+        <email>3db85a8e21b54bab848eb8f01d5d78c5.protect@whoisguard.com</email>
+      </Domainemails>
+      <Genericemails>
+        <email>postmaster@domain.com</email>
+        <email>sslwebmaster@domain.com</email>
+        <email>ssladministrator@domain.com</email>
+        <email>mis@domain.com</email>
+      </Genericemails>      
+    </GetApproverEmailListResult>
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>--6:00</GMTTimeDifference>
+  <ExecutionTime>3.615</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.ssl.getApproverEmailList")
+		correctParams.Set("DomainName", "domain.com")
+		correctParams.Set("CertificateType", "PositiveSSL")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	emails, err := client.SslGetApproverEmailList("domain.com", "PositiveSSL")
+	if err != nil {
+		t.Errorf("SslGetApproverEmailList returned error: %v", err)
+	}
+
+	wantDomain := []string{
+		"3db85a8e21b54bab848eb8f01d5d78c5.protect@whoisguard.com",
+	}
+
+	wantGeneric := []string{
+		"postmaster@domain.com",
+		"sslwebmaster@domain.com",
+		"ssladministrator@domain.com",
+		"mis@domain.com",
+	}
+
+	if !reflect.DeepEqual(emails.DomainEmails, wantDomain) {
+		t.Errorf("SslGetApproverEmailList returned %+v, want %+v", emails.DomainEmails, wantDomain)
+	}
+
+	if !reflect.DeepEqual(emails.GenericEmails, wantGeneric) {
+		t.Errorf("SslGetApproverEmailList returned %+v, want %+v", emails.GenericEmails, wantGeneric)
+	}
+}
+
+func TestSslGetInfo(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<ApiResponse Status="OK">
+<Errors />
+<Warnings />
+<RequestedCommand>namecheap.ssl.getInfo</RequestedCommand>
+<CommandResponse Type="namecheap.ssl.getInfo">
+ <SSLGetInfoResult Status="active" StatusDescription="Certificate is Active." Type="positivessl" IssuedOn="1/20/2014" Expires="1/20/2015" ActivationExpireDate="" OrderId="10439081"ReplacedBy="747253" SANSCount="0">
+ <CertificateDetails>
+ <CSR>
+<![CDATA[
+-----BEGIN CERTIFICATE REQUEST-----
+MIIC3jCCAcYCAQAwgZgxGTAXBgNVBAMMEGxhbWFyaW9vbmVhbC5jb20xFTATBgNV
+BAoMDGxhbWFyaW9vbmVhbDERMA8GA1UECwwIc2VjdXJpdHkxCzAJBgNVBAcMAkto
+5eu2KxLOJtaRL++ur5foTTe9
+-----END CERTIFICATE REQUEST-----
+]]>
+</CSR>
+<ApproverEmail>example@domain.com</ApproverEmail>  
+<CommonName>domain.com</CommonName>
+<AdministratorName>John Doe</AdministratorName>
+<AdministratorEmail>example@domain.com</AdministratorEmail>
+ <Certificates CertificateReturned="true" ReturnType="Individual">
+ <Certificate>
+<![CDATA[
+-----BEGIN CERTIFICATE-----
+MIIFBDCCA+ygAwIBAgIQJXnrY7043QfanPVrLcKPczANBgkqhkiG9w0BAQUFADBz
+MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYD
+LDGeQmFIuHBMs878DkdOKZUsR4Cs7AzcYOxRWZUuAHpDrHQQiR5QHTg6Mc2ZtFvr
+QwQg7hdY7gQDuoC94Ndm/2LrNbY9ZFz4dCV2+E8BYBsL0GlPMlSKxw==
+-----END CERTIFICATE-----
+]]>
+</Certificate>
+ <CaCertificates>
+<Certificate Type="INTERMEDIATE">
+ <Certificate>
+<![CDATA[
+-----BEGIN CERTIFICATE-----
+MIIENjCCAx6gAwIBAgIBATANBgkqhkiG9w0BAQUFADBvMQswCQYDVQQGEwJTRTEU
+MBIGA1UEChMLQWRkVHJ1c3QgQUIxJjAkBgNVBAsTHUFkZFRydXN0IEV4dGVybmFs
+c4g/VhsxOBi0cQ+azcgOno4uG+GMmIPLHzHxREzGBHNJdmAPx/i9F4BrLunMTA5a
+mnkPIAou1Z5jJh5VkpTYghdae9C8x49OhgQ=
+-----END CERTIFICATE-----
+]]>
+</Certificate>
+</Certificate>
+<Certificate Type="INTERMEDIATE">
+ <Certificate>
+<![CDATA[
+-----BEGIN CERTIFICATE-----
+MIIE5TCCA82gAwIBAgIQB28SRoFFnCjVSNaXxA4AGzANBgkqhkiG9w0BAQUFADBv
+uuGtm87fM04wO+mPZn+C+mv626PAcwDj1hKvTfIPWhRRH224hoFiB85ccsJP81cq
+cdnUl4XmGFO3
+-----END CERTIFICATE-----
+]]>
+</Certificate>
+</Certificate>
+ </CaCertificates>
+ </Certificates>
+ </CertificateDetails>
+ <Provider>
+<OrderID>111111</OrderID>
+<Name>COMODO</Name>
+ </Provider>
+ </SSLGetInfoResult>
+</CommandResponse>
+<Server>API01</Server>
+<GMTTimeDifference>--5:00</GMTTimeDifference>
+<ExecutionTime>0.542</ExecutionTime>
+ </ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.ssl.getInfo")
+		correctParams.Set("CertificateID", "1234")
+		correctParams.Set("Returncertificate", "true")
+		correctParams.Set("Returntype", "Individual")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, respXML)
+	})
+
+	result, err := client.SslGetInfo(1234)
+	if err != nil {
+		t.Errorf("SslGetInfo returned error: %v", err)
+	}
+
+	want := &SslGetInfoResult{
+		Status:               "active",
+		StatusDescription:    "Certificate is Active.",
+		Type:                 "positivessl",
+		IssuedOn:             "1/20/2014",
+		Expires:              "1/20/2015",
+		ActivationExpireDate: "",
+		OrderID:              10439081,
+		ReplacedBy:           747253,
+		SANSCount:            0,
+		CertificateDetails: SslCertificateDetails{
+			CSR: `
+
+-----BEGIN CERTIFICATE REQUEST-----
+MIIC3jCCAcYCAQAwgZgxGTAXBgNVBAMMEGxhbWFyaW9vbmVhbC5jb20xFTATBgNV
+BAoMDGxhbWFyaW9vbmVhbDERMA8GA1UECwwIc2VjdXJpdHkxCzAJBgNVBAcMAkto
+5eu2KxLOJtaRL++ur5foTTe9
+-----END CERTIFICATE REQUEST-----
+
+`,
+			ApproverEmail:      "example@domain.com",
+			CommonName:         "domain.com",
+			AdministratorName:  "John Doe",
+			AdministratorEmail: "example@domain.com",
+			Certificates: SslGetInfoCertificates{
+				CertificateReturned: true,
+				ReturnType:          "Individual",
+				Certificate: []string{
+					`
+
+-----BEGIN CERTIFICATE-----
+MIIFBDCCA+ygAwIBAgIQJXnrY7043QfanPVrLcKPczANBgkqhkiG9w0BAQUFADBz
+MQswCQYDVQQGEwJHQjEbMBkGA1UECBMSR3JlYXRlciBNYW5jaGVzdGVyMRAwDgYD
+LDGeQmFIuHBMs878DkdOKZUsR4Cs7AzcYOxRWZUuAHpDrHQQiR5QHTg6Mc2ZtFvr
+QwQg7hdY7gQDuoC94Ndm/2LrNbY9ZFz4dCV2+E8BYBsL0GlPMlSKxw==
+-----END CERTIFICATE-----
+
+`,
+				},
+
+				CACertificates: SslCACertificates{
+					Certificate: []SslCACertificate{
+						SslCACertificate{
+							Type: "INTERMEDIATE",
+							Certificate: `
+
+-----BEGIN CERTIFICATE-----
+MIIENjCCAx6gAwIBAgIBATANBgkqhkiG9w0BAQUFADBvMQswCQYDVQQGEwJTRTEU
+MBIGA1UEChMLQWRkVHJ1c3QgQUIxJjAkBgNVBAsTHUFkZFRydXN0IEV4dGVybmFs
+c4g/VhsxOBi0cQ+azcgOno4uG+GMmIPLHzHxREzGBHNJdmAPx/i9F4BrLunMTA5a
+mnkPIAou1Z5jJh5VkpTYghdae9C8x49OhgQ=
+-----END CERTIFICATE-----
+
+`,
+						},
+						SslCACertificate{
+							Type: "INTERMEDIATE",
+							Certificate: `
+
+-----BEGIN CERTIFICATE-----
+MIIE5TCCA82gAwIBAgIQB28SRoFFnCjVSNaXxA4AGzANBgkqhkiG9w0BAQUFADBv
+uuGtm87fM04wO+mPZn+C+mv626PAcwDj1hKvTfIPWhRRH224hoFiB85ccsJP81cq
+cdnUl4XmGFO3
+-----END CERTIFICATE-----
+
+`,
+						},
+					},
+				},
+			},
+		},
+		Provider: SslProvider{
+			OrderID: 111111,
+			Name:    "COMODO",
+		},
+	}
+
+	// The two structs are quite large and the diff tool makes it a bit easier
+	// to spot differences between the two
+	diff, equal := messagediff.PrettyDiff(result, want)
+
+	if !equal {
+		t.Errorf("Result != wanted; diff:\n%v\n", diff)
+	}
+}
+
+func TestSslResendApproverEmail(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `
+<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
+    <Errors/>
+    <Warnings/>
+    <RequestedCommand>namecheap.ssl.resendApproverEmail</RequestedCommand>
+    <CommandResponse Type="namecheap.ssl.resendApproverEmail">
+        <SSLResendApproverEmailResult ID="1044702" IsSuccess="true"/>
+    </CommandResponse>
+    <Server>4df13e5a691e</Server>
+    <GMTTimeDifference>--5:00</GMTTimeDifference>
+    <ExecutionTime>1.242</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.ssl.resendApproverEmail")
+		correctParams.Set("CertificateID", "1044702")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "GET")
+		fmt.Fprint(w, respXML)
+	})
+
+	resendResult, err := client.SslResendApproverEmail(1044702)
+	if err != nil {
+		t.Errorf("SslCreate returned error: %v", err)
+	}
+
+	want := &SslResendApproverEmailResult{
+		ID:        1044702,
+		IsSuccess: true,
+	}
+
+	if !reflect.DeepEqual(resendResult, want) {
+		t.Errorf("SslResendApproverEmail returned %+v, want %+v", resendResult, want)
 	}
 }
 
