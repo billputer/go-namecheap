@@ -33,8 +33,8 @@ For more complete documentation, load up godoc and find the package.
 
 ## Development
 
-- Source hosted at [GitHub](https://github.com/billputer/go-namecheap)
-- Report issues and feature requests to [GitHub Issues](https://github.com/billputer/go-namecheap/issues)
+- Source hosted at [GitHub](https://github.com/JamieH/go-namecheap)
+- Report issues and feature requests to [GitHub Issues](https://github.com/JamieH/go-namecheap/issues)
 
 Pull requests welcome!
 
