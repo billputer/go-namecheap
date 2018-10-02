@@ -50,7 +50,7 @@ type DNSDetails struct {
 }
 
 type Whoisguard struct {
-	Enabled     bool   `xml:"Enabled,attr"`
+	Enabled     string `xml:"Enabled,attr"`
 	ID          int64  `xml:"ID"`
 	ExpiredDate string `xml:"ExpiredDate"`
 }

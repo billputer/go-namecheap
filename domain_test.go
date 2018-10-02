@@ -151,7 +151,7 @@ func TestDomainGetInfo(t *testing.T) {
 			},
 		},
 		Whoisguard: Whoisguard{
-			Enabled:     true,
+			Enabled:     "True",
 			ID:          53536,
 			ExpiredDate: "11/04/2015",
 		},
