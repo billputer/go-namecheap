@@ -2,7 +2,7 @@
 
 A Go library for using [the Namecheap API](https://www.namecheap.com/support/api/intro.aspx).
 
-**Build Status:** [![Build Status](https://travis-ci.org/billputer/go-namecheap.png?branch=master)](https://travis-ci.org/billputer/go-namecheap)
+**Build Status:** [![Build Status](https://travis-ci.org/JamieH/go-namecheap.png?branch=master)](https://travis-ci.org/JamieH/go-namecheap)
 
 ## Examples
 
