@@ -5,7 +5,8 @@ import (
 )
 
 const (
-	usersGetPricing = "namecheap.users.getPricing"
+	usersGetPricing  = "namecheap.users.getPricing"
+	usersGetBalances = "namecheap.users.getBalances"
 )
 
 type UsersGetPricingResult struct {
@@ -27,6 +28,15 @@ type UsersGetPricingResult struct {
 	} `xml:"ProductCategory"`
 }
 
+type UsersGetBalancesResult struct {
+	Currency                  string  `xml:"Currency,attr"`
+	AvailableBalance          float64 `xml:"AvailableBalance,attr"`
+	AccountBalance            float64 `xml:"AccountBalance,attr"`
+	EarnedAmount              float64 `xml:"EarnedAmount,attr"`
+	WithdrawableAmount        float64 `xml:"WithdrawableAmount,attr"`
+	FundsRequiredForAutoRenew float64 `xml:"FundsRequiredForAutoRenew,attr"`
+}
+
 func (client *Client) UsersGetPricing(productType string) ([]UsersGetPricingResult, error) {
 	requestInfo := &ApiRequest{
 		command: usersGetPricing,
@@ -41,4 +51,19 @@ func (client *Client) UsersGetPricing(productType string) ([]UsersGetPricingResu
 	}
 
 	return resp.UsersGetPricing, nil
+}
+
+func (client *Client) UsersGetBalances() ([]UsersGetBalancesResult, error) {
+	requestInfo := &ApiRequest{
+		command: usersGetBalances,
+		method:  "POST",
+		params:  url.Values{},
+	}
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.UsersGetBalances, nil
 }
