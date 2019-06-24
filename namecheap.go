@@ -12,9 +12,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const defaultBaseURL = "https://api.namecheap.com/xml.response"
+const defaultTimeout = time.Second * 60
 
 // Client represents a client used to make calls to the Namecheap API.
 type Client struct {
@@ -22,6 +24,7 @@ type Client struct {
 	ApiToken   string
 	UserName   string
 	HttpClient *http.Client
+	Timeout    time.Duration
 
 	// Base URL for API requests.
 	// Defaults to the public Namecheap API,
@@ -90,6 +93,7 @@ func NewClient(apiUser, apiToken, userName string) *Client {
 		UserName:   userName,
 		HttpClient: http.DefaultClient,
 		BaseURL:    defaultBaseURL,
+		Timeout:    defaultTimeout,
 	}
 }
 
@@ -160,6 +164,8 @@ func (client *Client) sendRequest(request *ApiRequest) ([]byte, int, error) {
 	if err != nil {
 		return nil, 0, err
 	}
+
+	client.HttpClient.Timeout = client.Timeout
 
 	resp, err := client.HttpClient.Do(req)
 	if err != nil {
