@@ -16,7 +16,7 @@ import (
 )
 
 const defaultBaseURL = "https://api.namecheap.com/xml.response"
-const defaultTimeout = time.Second * 60
+const defaultTimeout = 0
 
 // Client represents a client used to make calls to the Namecheap API.
 type Client struct {
@@ -24,7 +24,10 @@ type Client struct {
 	ApiToken   string
 	UserName   string
 	HttpClient *http.Client
-	Timeout    time.Duration
+
+	// Timeout specifies a time limit for requests made by this
+	// Client. Default value is zero, which means no timeout.
+	Timeout time.Duration
 
 	// Base URL for API requests.
 	// Defaults to the public Namecheap API,
