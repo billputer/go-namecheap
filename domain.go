@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	domainsGetList = "namecheap.domains.getList"
-	domainsGetInfo = "namecheap.domains.getInfo"
-	domainsCheck   = "namecheap.domains.check"
-	domainsCreate  = "namecheap.domains.create"
-	domainsTLDList = "namecheap.domains.getTldList"
-	domainsRenew   = "namecheap.domains.renew"
+	domainsGetList    = "namecheap.domains.getList"
+	domainsGetInfo    = "namecheap.domains.getInfo"
+	domainsCheck      = "namecheap.domains.check"
+	domainsCreate     = "namecheap.domains.create"
+	domainsTLDList    = "namecheap.domains.getTldList"
+	domainsRenew      = "namecheap.domains.renew"
+	domainsReactivate = "namecheap.domains.reactivate"
 )
 
 // DomainGetListResult represents the data returned by 'domains.getList'
@@ -89,6 +90,14 @@ type DomainRenewResult struct {
 	OrderID       int     `xml:"OrderID,attr"`
 	TransactionID int     `xml:"TransactionID,attr"`
 	ExpireDate    string  `xml:"DomainDetails>ExpiredDate"`
+}
+
+type DomainReactivateResult struct {
+	Name          string  `xml:"Domain,attr"`
+	Reactivated   bool    `xml:"IsSuccess,attr"`
+	ChargedAmount float64 `xml:"ChargedAmount,attr"`
+	OrderID       int     `xml:"OrderID,attr"`
+	TransactionID int     `xml:"TransactionID,attr"`
 }
 
 type DomainCreateOption struct {
@@ -211,4 +220,21 @@ func (client *Client) DomainRenew(domainName string, years int) (*DomainRenewRes
 	}
 
 	return resp.DomainRenew, nil
+}
+
+func (client *Client) DomainReactivate(domainName string, years int) (*DomainReactivateResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsReactivate,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+	requestInfo.params.Set("Years", strconv.Itoa(years))
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainReactivate, nil
 }

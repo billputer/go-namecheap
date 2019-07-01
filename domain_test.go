@@ -321,3 +321,48 @@ func TestDomainsRenew(t *testing.T) {
 		t.Errorf("DomainRenew returned %+v, want %+v", result, want)
 	}
 }
+
+func TestDomainsReactivate(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <Warnings />
+  <RequestedCommand>namecheap.domains.reactivate</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.reactivate">
+    <DomainReactivateResult Domain="domain1.com" IsSuccess="true" ChargedAmount="650.0000" OrderID="23569" TransactionID="25080" />
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5:00</GMTTimeDifference>
+  <ExecutionTime>12.915</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.reactivate")
+		correctParams.Set("DomainName", "domain1.com")
+		correctParams.Set("Years", "1")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	result, err := client.DomainReactivate("domain1.com", 1)
+	if err != nil {
+		t.Errorf("DomainReactivate returned error: %v", err)
+	}
+
+	// DomainReactivateResult we expect, given the respXML above
+	want := &DomainReactivateResult{
+		Name:          "domain1.com",
+		Reactivated:   true,
+		ChargedAmount: 650,
+		TransactionID: 25080,
+		OrderID:       23569,
+	}
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("DomainsReactivate returned %+v, want %+v", result, want)
+	}
+}
