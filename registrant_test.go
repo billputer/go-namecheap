@@ -6,7 +6,7 @@ import (
 )
 
 func TestAddValues(t *testing.T) {
-	reg := newRegistrant(
+	reg := NewRegistrant(
 		"r", "m",
 		"10 Park Ave.",
 		"Apt. 3F",

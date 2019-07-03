@@ -8,13 +8,14 @@ import (
 )
 
 const (
-	domainsGetList    = "namecheap.domains.getList"
-	domainsGetInfo    = "namecheap.domains.getInfo"
-	domainsCheck      = "namecheap.domains.check"
-	domainsCreate     = "namecheap.domains.create"
-	domainsTLDList    = "namecheap.domains.getTldList"
-	domainsRenew      = "namecheap.domains.renew"
-	domainsReactivate = "namecheap.domains.reactivate"
+	domainsGetList     = "namecheap.domains.getList"
+	domainsGetInfo     = "namecheap.domains.getInfo"
+	domainsCheck       = "namecheap.domains.check"
+	domainsCreate      = "namecheap.domains.create"
+	domainsTLDList     = "namecheap.domains.getTldList"
+	domainsRenew       = "namecheap.domains.renew"
+	domainsReactivate  = "namecheap.domains.reactivate"
+	domainsSetContacts = "namecheap.domains.setContacts"
 )
 
 // DomainGetListResult represents the data returned by 'domains.getList'
@@ -98,6 +99,11 @@ type DomainReactivateResult struct {
 	ChargedAmount float64 `xml:"ChargedAmount,attr"`
 	OrderID       int     `xml:"OrderID,attr"`
 	TransactionID int     `xml:"TransactionID,attr"`
+}
+
+type DomainSetContactsResult struct {
+	Name            string `xml:"Domain,attr"`
+	ContactsChanged bool   `xml:"IsSuccess,attr"`
 }
 
 type DomainCreateOption struct {
@@ -237,4 +243,24 @@ func (client *Client) DomainReactivate(domainName string, years int) (*DomainRea
 	}
 
 	return resp.DomainReactivate, nil
+}
+
+func (client *Client) DomainSetContacts(domainName string, registrant *Registrant) (*DomainSetContactsResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsSetContacts,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+
+	if err := registrant.addValues(requestInfo.params); err != nil {
+		return nil, err
+	}
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainSetContacts, nil
 }

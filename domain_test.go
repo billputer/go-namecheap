@@ -366,3 +366,59 @@ func TestDomainsReactivate(t *testing.T) {
 		t.Errorf("DomainsReactivate returned %+v, want %+v", result, want)
 	}
 }
+
+func TestDomainsSetContacts(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.setContacts</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.setContacts">
+    <DomainSetContactResult Domain="domain1.com" IsSuccess="true" />
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>0.078</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		fillInfo := func(prefix string) {
+			correctParams.Set(prefix+"FirstName", "John")
+			correctParams.Set(prefix+"LastName", "Smith")
+			correctParams.Set(prefix+"Address1", "8939 S.cross Blvd")
+			correctParams.Set(prefix+"StateProvince", "CA")
+			correctParams.Set(prefix+"PostalCode", "90045")
+			correctParams.Set(prefix+"Country", "US")
+			correctParams.Set(prefix+"Phone", "+1.6613102107")
+			correctParams.Set(prefix+"EmailAddress", "john@gmail.com")
+			correctParams.Set(prefix+"City", "CA")
+		}
+		correctParams.Set("Command", "namecheap.domains.setContacts")
+		correctParams.Set("DomainName", "domain1.com")
+		fillInfo("AuxBilling")
+		fillInfo("Tech")
+		fillInfo("Admin")
+		fillInfo("Registrant")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	registrant := NewRegistrant("John", "Smith", "8939 S.cross Blvd", "", "CA", "CA", "90045", "US", "+1.6613102107", "john@gmail.com")
+	result, err := client.DomainSetContacts("domain1.com", registrant)
+	if err != nil {
+		t.Errorf("DomainSetContacts returned error: %v", err)
+	}
+
+	// DomainSetContactsResult we expect, given the respXML above
+	want := &DomainSetContactsResult{
+		Name:            "domain1.com",
+		ContactsChanged: true,
+	}
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("DomainSetContacts returned %+v, want %+v", result, want)
+	}
+}

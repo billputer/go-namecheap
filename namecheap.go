@@ -55,6 +55,7 @@ type ApiResponse struct {
 	DomainCreate       *DomainCreateResult       `xml:"CommandResponse>DomainCreateResult"`
 	DomainRenew        *DomainRenewResult        `xml:"CommandResponse>DomainRenewResult"`
 	DomainReactivate   *DomainReactivateResult   `xml:"CommandResponse>DomainReactivateResult"`
+	DomainSetContacts  *DomainSetContactsResult  `xml:"CommandResponse>DomainSetContactResult"`
 	DomainsCheck       []DomainCheckResult       `xml:"CommandResponse>DomainCheckResult"`
 	DomainNSInfo       *DomainNSInfoResult       `xml:"CommandResponse>DomainNSInfoResult"`
 	DomainDNSSetCustom *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
@@ -108,7 +109,7 @@ func (client *Client) NewRegistrant(
 	city, state, postalCode, country,
 	phone, email string,
 ) {
-	client.Registrant = newRegistrant(
+	client.Registrant = NewRegistrant(
 		firstName, lastName,
 		addr1, addr2,
 		city, state, postalCode, country,
