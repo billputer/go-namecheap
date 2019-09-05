@@ -52,9 +52,10 @@ type DNSDetails struct {
 }
 
 type Whoisguard struct {
-	Enabled     bool   `xml:"Enabled,attr"`
-	ID          int64  `xml:"ID"`
-	ExpiredDate string `xml:"ExpiredDate"`
+	EnabledString string `xml:"Enabled,attr"`
+	Enabled       bool
+	ID            int64  `xml:"ID"`
+	ExpiredDate   string `xml:"ExpiredDate"`
 }
 
 type DomainCheckResult struct {
@@ -139,6 +140,11 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
+	}
+
+	switch strings.ToLower(resp.DomainInfo.Whoisguard.EnabledString) {
+	case "1", "true":
+		resp.DomainInfo.Whoisguard.Enabled = true
 	}
 
 	return resp.DomainInfo, nil

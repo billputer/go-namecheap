@@ -139,9 +139,94 @@ func TestDomainGetInfo(t *testing.T) {
 			},
 		},
 		Whoisguard: Whoisguard{
-			Enabled:     true,
-			ID:          53536,
-			ExpiredDate: "11/04/2015",
+			Enabled:       true,
+			EnabledString: "True",
+			ID:            53536,
+			ExpiredDate:   "11/04/2015",
+		},
+	}
+
+	if !reflect.DeepEqual(domain, want) {
+		t.Errorf("DomainGetInfo returned %+v, want %+v", domain, want)
+	}
+}
+
+func TestDomainGetInfoNotAlloted(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="utf-8"?>
+<ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
+	<Errors />
+	<Warnings />
+	<RequestedCommand>namecheap.domains.getinfo</RequestedCommand>
+	<CommandResponse Type="namecheap.domains.getInfo">
+		<DomainGetInfoResult Status="Ok" ID="37103805" DomainName="example.com" OwnerName="anUser" IsOwner="true" IsPremium="false">
+			<DomainDetails>
+				<CreatedDate>07/25/2019</CreatedDate>
+				<ExpiredDate>07/25/2020</ExpiredDate>
+				<NumYears>0</NumYears>
+			</DomainDetails>
+			<LockDetails />
+			<Whoisguard Enabled="NotAlloted">
+				<ID>0</ID>
+			</Whoisguard>
+			<PremiumDnsSubscription>
+				<UseAutoRenew>false</UseAutoRenew>
+				<SubscriptionId>-1</SubscriptionId>
+				<CreatedDate>0001-01-01T00:00:00</CreatedDate>
+				<ExpirationDate>0001-01-01T00:00:00</ExpirationDate>
+				<IsActive>false</IsActive>
+			</PremiumDnsSubscription>
+			<DnsDetails ProviderType="FREE" IsUsingOurDNS="true" HostCount="2" EmailType="FWD" DynamicDNSStatus="false" IsFailover="false">
+				<Nameserver>dns1.registrar-servers.com</Nameserver>
+				<Nameserver>dns2.registrar-servers.com</Nameserver>
+			</DnsDetails>
+			<Modificationrights All="true" />
+		</DomainGetInfoResult>
+	</CommandResponse>
+	<Server>PHX01APIEXT01</Server>
+	<GMTTimeDifference>--4:00</GMTTimeDifference>
+	<ExecutionTime>0.018</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.getInfo")
+		correctParams.Set("DomainName", "example.com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	domain, err := client.DomainGetInfo("example.com")
+
+	if err != nil {
+		t.Errorf("DomainGetInfo returned error: %v", err)
+	}
+
+	// DomainInfo we expect, given the respXML above
+	want := &DomainInfo{
+		ID:        37103805,
+		Name:      "example.com",
+		Owner:     "anUser",
+		Created:   "07/25/2019",
+		Expires:   "07/25/2020",
+		IsExpired: false,
+		IsLocked:  false,
+		AutoRenew: false,
+		DNSDetails: DNSDetails{
+			ProviderType:  "FREE",
+			IsUsingOurDNS: true,
+			Nameservers: []string{
+				"dns1.registrar-servers.com",
+				"dns2.registrar-servers.com",
+			},
+		},
+		Whoisguard: Whoisguard{
+			Enabled:       false,
+			EnabledString: "NotAlloted",
+			ID:            0,
 		},
 	}
 
