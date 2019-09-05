@@ -8,12 +8,14 @@ import (
 )
 
 const (
-	domainsGetList = "namecheap.domains.getList"
-	domainsGetInfo = "namecheap.domains.getInfo"
-	domainsCheck   = "namecheap.domains.check"
-	domainsCreate  = "namecheap.domains.create"
-	domainsTLDList = "namecheap.domains.getTldList"
-	domainsRenew   = "namecheap.domains.renew"
+	domainsGetList     = "namecheap.domains.getList"
+	domainsGetInfo     = "namecheap.domains.getInfo"
+	domainsCheck       = "namecheap.domains.check"
+	domainsCreate      = "namecheap.domains.create"
+	domainsTLDList     = "namecheap.domains.getTldList"
+	domainsRenew       = "namecheap.domains.renew"
+	domainsReactivate  = "namecheap.domains.reactivate"
+	domainsSetContacts = "namecheap.domains.setContacts"
 )
 
 // DomainGetListResult represents the data returned by 'domains.getList'
@@ -50,9 +52,10 @@ type DNSDetails struct {
 }
 
 type Whoisguard struct {
-	Enabled     bool   `xml:"Enabled,attr"`
-	ID          int64  `xml:"ID"`
-	ExpiredDate string `xml:"ExpiredDate"`
+	EnabledString string `xml:"Enabled,attr"`
+	Enabled       bool
+	ID            int64  `xml:"ID"`
+	ExpiredDate   string `xml:"ExpiredDate"`
 }
 
 type DomainCheckResult struct {
@@ -91,6 +94,19 @@ type DomainRenewResult struct {
 	ExpireDate    string  `xml:"DomainDetails>ExpiredDate"`
 }
 
+type DomainReactivateResult struct {
+	Name          string  `xml:"Domain,attr"`
+	Reactivated   bool    `xml:"IsSuccess,attr"`
+	ChargedAmount float64 `xml:"ChargedAmount,attr"`
+	OrderID       int     `xml:"OrderID,attr"`
+	TransactionID int     `xml:"TransactionID,attr"`
+}
+
+type DomainSetContactsResult struct {
+	Name            string `xml:"Domain,attr"`
+	ContactsChanged bool   `xml:"IsSuccess,attr"`
+}
+
 type DomainCreateOption struct {
 	AddFreeWhoisguard bool
 	WGEnabled         bool
@@ -124,6 +140,11 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
+	}
+
+	switch strings.ToLower(resp.DomainInfo.Whoisguard.EnabledString) {
+	case "1", "true":
+		resp.DomainInfo.Whoisguard.Enabled = true
 	}
 
 	return resp.DomainInfo, nil
@@ -211,4 +232,41 @@ func (client *Client) DomainRenew(domainName string, years int) (*DomainRenewRes
 	}
 
 	return resp.DomainRenew, nil
+}
+
+func (client *Client) DomainReactivate(domainName string, years int) (*DomainReactivateResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsReactivate,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+	requestInfo.params.Set("Years", strconv.Itoa(years))
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainReactivate, nil
+}
+
+func (client *Client) DomainSetContacts(domainName string, registrant *Registrant) (*DomainSetContactsResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsSetContacts,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+
+	if err := registrant.addValues(requestInfo.params); err != nil {
+		return nil, err
+	}
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainSetContacts, nil
 }

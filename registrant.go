@@ -34,9 +34,9 @@ type Registrant struct {
 	AuxBillingPhone, AuxBillingEmailAddress string
 }
 
-// newRegistrant return a new registrant where all the required fields are the same.
+// NewRegistrant return a new registrant where all the required fields are the same.
 // Feel free to change them as needed
-func newRegistrant(
+func NewRegistrant(
 	firstName, lastName,
 	addr1, addr2,
 	city, state, postalCode, country,

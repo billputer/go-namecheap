@@ -139,9 +139,94 @@ func TestDomainGetInfo(t *testing.T) {
 			},
 		},
 		Whoisguard: Whoisguard{
-			Enabled:     true,
-			ID:          53536,
-			ExpiredDate: "11/04/2015",
+			Enabled:       true,
+			EnabledString: "True",
+			ID:            53536,
+			ExpiredDate:   "11/04/2015",
+		},
+	}
+
+	if !reflect.DeepEqual(domain, want) {
+		t.Errorf("DomainGetInfo returned %+v, want %+v", domain, want)
+	}
+}
+
+func TestDomainGetInfoNotAlloted(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="utf-8"?>
+<ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
+	<Errors />
+	<Warnings />
+	<RequestedCommand>namecheap.domains.getinfo</RequestedCommand>
+	<CommandResponse Type="namecheap.domains.getInfo">
+		<DomainGetInfoResult Status="Ok" ID="37103805" DomainName="example.com" OwnerName="anUser" IsOwner="true" IsPremium="false">
+			<DomainDetails>
+				<CreatedDate>07/25/2019</CreatedDate>
+				<ExpiredDate>07/25/2020</ExpiredDate>
+				<NumYears>0</NumYears>
+			</DomainDetails>
+			<LockDetails />
+			<Whoisguard Enabled="NotAlloted">
+				<ID>0</ID>
+			</Whoisguard>
+			<PremiumDnsSubscription>
+				<UseAutoRenew>false</UseAutoRenew>
+				<SubscriptionId>-1</SubscriptionId>
+				<CreatedDate>0001-01-01T00:00:00</CreatedDate>
+				<ExpirationDate>0001-01-01T00:00:00</ExpirationDate>
+				<IsActive>false</IsActive>
+			</PremiumDnsSubscription>
+			<DnsDetails ProviderType="FREE" IsUsingOurDNS="true" HostCount="2" EmailType="FWD" DynamicDNSStatus="false" IsFailover="false">
+				<Nameserver>dns1.registrar-servers.com</Nameserver>
+				<Nameserver>dns2.registrar-servers.com</Nameserver>
+			</DnsDetails>
+			<Modificationrights All="true" />
+		</DomainGetInfoResult>
+	</CommandResponse>
+	<Server>PHX01APIEXT01</Server>
+	<GMTTimeDifference>--4:00</GMTTimeDifference>
+	<ExecutionTime>0.018</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.getInfo")
+		correctParams.Set("DomainName", "example.com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	domain, err := client.DomainGetInfo("example.com")
+
+	if err != nil {
+		t.Errorf("DomainGetInfo returned error: %v", err)
+	}
+
+	// DomainInfo we expect, given the respXML above
+	want := &DomainInfo{
+		ID:        37103805,
+		Name:      "example.com",
+		Owner:     "anUser",
+		Created:   "07/25/2019",
+		Expires:   "07/25/2020",
+		IsExpired: false,
+		IsLocked:  false,
+		AutoRenew: false,
+		DNSDetails: DNSDetails{
+			ProviderType:  "FREE",
+			IsUsingOurDNS: true,
+			Nameservers: []string{
+				"dns1.registrar-servers.com",
+				"dns2.registrar-servers.com",
+			},
+		},
+		Whoisguard: Whoisguard{
+			Enabled:       false,
+			EnabledString: "NotAlloted",
+			ID:            0,
 		},
 	}
 
@@ -319,5 +404,106 @@ func TestDomainsRenew(t *testing.T) {
 	}
 	if !reflect.DeepEqual(result, want) {
 		t.Errorf("DomainRenew returned %+v, want %+v", result, want)
+	}
+}
+
+func TestDomainsReactivate(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <Warnings />
+  <RequestedCommand>namecheap.domains.reactivate</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.reactivate">
+    <DomainReactivateResult Domain="domain1.com" IsSuccess="true" ChargedAmount="650.0000" OrderID="23569" TransactionID="25080" />
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5:00</GMTTimeDifference>
+  <ExecutionTime>12.915</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.reactivate")
+		correctParams.Set("DomainName", "domain1.com")
+		correctParams.Set("Years", "1")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	result, err := client.DomainReactivate("domain1.com", 1)
+	if err != nil {
+		t.Errorf("DomainReactivate returned error: %v", err)
+	}
+
+	// DomainReactivateResult we expect, given the respXML above
+	want := &DomainReactivateResult{
+		Name:          "domain1.com",
+		Reactivated:   true,
+		ChargedAmount: 650,
+		TransactionID: 25080,
+		OrderID:       23569,
+	}
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("DomainsReactivate returned %+v, want %+v", result, want)
+	}
+}
+
+func TestDomainsSetContacts(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.setContacts</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.setContacts">
+    <DomainSetContactResult Domain="domain1.com" IsSuccess="true" />
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>0.078</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		fillInfo := func(prefix string) {
+			correctParams.Set(prefix+"FirstName", "John")
+			correctParams.Set(prefix+"LastName", "Smith")
+			correctParams.Set(prefix+"Address1", "8939 S.cross Blvd")
+			correctParams.Set(prefix+"StateProvince", "CA")
+			correctParams.Set(prefix+"PostalCode", "90045")
+			correctParams.Set(prefix+"Country", "US")
+			correctParams.Set(prefix+"Phone", "+1.6613102107")
+			correctParams.Set(prefix+"EmailAddress", "john@gmail.com")
+			correctParams.Set(prefix+"City", "CA")
+		}
+		correctParams.Set("Command", "namecheap.domains.setContacts")
+		correctParams.Set("DomainName", "domain1.com")
+		fillInfo("AuxBilling")
+		fillInfo("Tech")
+		fillInfo("Admin")
+		fillInfo("Registrant")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	registrant := NewRegistrant("John", "Smith", "8939 S.cross Blvd", "", "CA", "CA", "90045", "US", "+1.6613102107", "john@gmail.com")
+	result, err := client.DomainSetContacts("domain1.com", registrant)
+	if err != nil {
+		t.Errorf("DomainSetContacts returned error: %v", err)
+	}
+
+	// DomainSetContactsResult we expect, given the respXML above
+	want := &DomainSetContactsResult{
+		Name:            "domain1.com",
+		ContactsChanged: true,
+	}
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("DomainSetContacts returned %+v, want %+v", result, want)
 	}
 }

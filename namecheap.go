@@ -12,9 +12,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const defaultBaseURL = "https://api.namecheap.com/xml.response"
+const defaultTimeout = 0
 
 // Client represents a client used to make calls to the Namecheap API.
 type Client struct {
@@ -22,6 +24,10 @@ type Client struct {
 	ApiToken   string
 	UserName   string
 	HttpClient *http.Client
+
+	// Timeout specifies a time limit for requests made by this
+	// Client. Default value is zero, which means no timeout.
+	Timeout time.Duration
 
 	// Base URL for API requests.
 	// Defaults to the public Namecheap API,
@@ -48,6 +54,8 @@ type ApiResponse struct {
 	DomainDNSSetHosts  *DomainDNSSetHostsResult  `xml:"CommandResponse>DomainDNSSetHostsResult"`
 	DomainCreate       *DomainCreateResult       `xml:"CommandResponse>DomainCreateResult"`
 	DomainRenew        *DomainRenewResult        `xml:"CommandResponse>DomainRenewResult"`
+	DomainReactivate   *DomainReactivateResult   `xml:"CommandResponse>DomainReactivateResult"`
+	DomainSetContacts  *DomainSetContactsResult  `xml:"CommandResponse>DomainSetContactResult"`
 	DomainsCheck       []DomainCheckResult       `xml:"CommandResponse>DomainCheckResult"`
 	DomainNSInfo       *DomainNSInfoResult       `xml:"CommandResponse>DomainNSInfoResult"`
 	DomainDNSSetCustom *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
@@ -90,6 +98,7 @@ func NewClient(apiUser, apiToken, userName string) *Client {
 		UserName:   userName,
 		HttpClient: http.DefaultClient,
 		BaseURL:    defaultBaseURL,
+		Timeout:    defaultTimeout,
 	}
 }
 
@@ -100,7 +109,7 @@ func (client *Client) NewRegistrant(
 	city, state, postalCode, country,
 	phone, email string,
 ) {
-	client.Registrant = newRegistrant(
+	client.Registrant = NewRegistrant(
 		firstName, lastName,
 		addr1, addr2,
 		city, state, postalCode, country,
@@ -160,6 +169,8 @@ func (client *Client) sendRequest(request *ApiRequest) ([]byte, int, error) {
 	if err != nil {
 		return nil, 0, err
 	}
+
+	client.HttpClient.Timeout = client.Timeout
 
 	resp, err := client.HttpClient.Do(req)
 	if err != nil {
