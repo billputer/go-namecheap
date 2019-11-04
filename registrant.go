@@ -16,22 +16,22 @@ type Registrant struct {
 	RegistrantFirstName, RegistrantLastName,
 	RegistrantAddress1, RegistrantAddress2, RegistrantCity,
 	RegistrantStateProvince, RegistrantPostalCode, RegistrantCountry,
-	RegistrantPhone, RegistrantEmailAddress,
+	RegistrantPhone, RegistrantEmailAddress, RegistrantOrganizationName,
 
 	TechFirstName, TechLastName,
 	TechAddress1, TechAddress2,
 	TechCity, TechStateProvince, TechPostalCode, TechCountry,
-	TechPhone, TechEmailAddress,
+	TechPhone, TechEmailAddress, TechOrganizationName,
 
 	AdminFirstName, AdminLastName,
 	AdminAddress1, AdminAddress2,
 	AdminCity, AdminStateProvince, AdminPostalCode, AdminCountry,
-	AdminPhone, AdminEmailAddress,
+	AdminPhone, AdminEmailAddress, AdminOrganizationName,
 
 	AuxBillingFirstName, AuxBillingLastName,
 	AuxBillingAddress1, AuxBillingAddress2,
 	AuxBillingCity, AuxBillingStateProvince, AuxBillingPostalCode, AuxBillingCountry,
-	AuxBillingPhone, AuxBillingEmailAddress string
+	AuxBillingPhone, AuxBillingEmailAddress, AuxBillingOrganizationName string
 }
 
 // newRegistrant return a new registrant where all the required fields are the same.
@@ -105,7 +105,7 @@ func (reg *Registrant) addValues(u url.Values) error {
 			)
 		}
 		if field == "" {
-			if strings.Contains(fieldName, "ddress2") {
+			if strings.Contains(fieldName, "ddress2") || strings.Contains(fieldName, "OrganizationName") {
 				continue
 			}
 
