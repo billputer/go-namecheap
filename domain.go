@@ -51,7 +51,8 @@ type DNSDetails struct {
 }
 
 type Whoisguard struct {
-	Enabled     bool   `xml:"Enabled,attr"`
+	RawEnabled  string `xml:"Enabled,attr"`
+	Enabled     bool   `xml:"-"`
 	ID          int64  `xml:"ID"`
 	ExpiredDate string `xml:"ExpiredDate"`
 }
@@ -132,6 +133,9 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 		return nil, err
 	}
 
+	if resp.DomainInfo != nil && strings.EqualFold(resp.DomainInfo.Whoisguard.RawEnabled, "true") {
+		resp.DomainInfo.Whoisguard.Enabled = true
+	}
 	return resp.DomainInfo, nil
 }
 

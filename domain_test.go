@@ -139,6 +139,7 @@ func TestDomainGetInfo(t *testing.T) {
 			},
 		},
 		Whoisguard: Whoisguard{
+			RawEnabled:  "True",
 			Enabled:     true,
 			ID:          53536,
 			ExpiredDate: "11/04/2015",
@@ -147,6 +148,51 @@ func TestDomainGetInfo(t *testing.T) {
 
 	if !reflect.DeepEqual(domain, want) {
 		t.Errorf("DomainGetInfo returned %+v, want %+v", domain, want)
+	}
+
+	// Test a response where <Whoisguard Enabled="NotAlloted">
+
+	respXML = `<?xml version="1.0" encoding="utf-8"?>
+<ApiResponse Status="OK" xmlns="http://api.namecheap.com/xml.response">
+  <Errors />
+  <Warnings />
+  <RequestedCommand>namecheap.domains.getInfo</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.getInfo">
+    <DomainGetInfoResult Status="Ok" ID="57582" DomainName="example.com" OwnerName="anUser" IsOwner="true">
+      <DomainDetails>
+        <CreatedDate>11/04/2014</CreatedDate>
+        <ExpiredDate>11/04/2015</ExpiredDate>
+        <NumYears>0</NumYears>
+      </DomainDetails>
+      <LockDetails />
+      <Whoisguard Enabled="NotAlloted">
+        <ID>0</ID>
+      </Whoisguard>
+      <DnsDetails ProviderType="FREE" IsUsingOurDNS="true">
+        <Nameserver>dns1.registrar-servers.com</Nameserver>
+        <Nameserver>dns2.registrar-servers.com</Nameserver>
+        <Nameserver>dns3.registrar-servers.com</Nameserver>
+        <Nameserver>dns4.registrar-servers.com</Nameserver>
+        <Nameserver>dns5.registrar-servers.com</Nameserver>
+      </DnsDetails>
+      <Modificationrights All="true" />
+    </DomainGetInfoResult>
+  </CommandResponse>
+  <Server>WEB1-SANDBOX1</Server>
+  <GMTTimeDifference>--5:00</GMTTimeDifference>
+  <ExecutionTime>0.008</ExecutionTime>
+</ApiResponse>`
+
+	domain, err = client.DomainGetInfo("example.com")
+	if err != nil {
+		t.Errorf("DomainGetInfo returned error: %v", err)
+	}
+
+	if domain.Whoisguard.Enabled != false {
+		t.Errorf("Whoisguard.Enabled is %+v, want %+v", domain.Whoisguard.Enabled, false)
+	}
+	if domain.Whoisguard.RawEnabled != "NotAlloted" {
+		t.Errorf("Whoisguard.RawEnabled is %+v, want %+v", domain.Whoisguard.RawEnabled, "NotAlloted")
 	}
 }
 
