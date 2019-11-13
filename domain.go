@@ -8,12 +8,13 @@ import (
 )
 
 const (
-	domainsGetList = "namecheap.domains.getList"
-	domainsGetInfo = "namecheap.domains.getInfo"
-	domainsCheck   = "namecheap.domains.check"
-	domainsCreate  = "namecheap.domains.create"
-	domainsTLDList = "namecheap.domains.getTldList"
-	domainsRenew   = "namecheap.domains.renew"
+	domainsGetList     = "namecheap.domains.getList"
+	domainsGetInfo     = "namecheap.domains.getInfo"
+	domainsCheck       = "namecheap.domains.check"
+	domainsCreate      = "namecheap.domains.create"
+	domainsTLDList     = "namecheap.domains.getTldList"
+	domainsRenew       = "namecheap.domains.renew"
+	domainsSetContacts = "namecheap.domains.setContacts"
 )
 
 // DomainGetListResult represents the data returned by 'domains.getList'
@@ -50,7 +51,8 @@ type DNSDetails struct {
 }
 
 type Whoisguard struct {
-	Enabled     bool   `xml:"Enabled,attr"`
+	RawEnabled  string `xml:"Enabled,attr"`
+	Enabled     bool   `xml:"-"`
 	ID          int64  `xml:"ID"`
 	ExpiredDate string `xml:"ExpiredDate"`
 }
@@ -91,6 +93,11 @@ type DomainRenewResult struct {
 	ExpireDate    string  `xml:"DomainDetails>ExpiredDate"`
 }
 
+type DomainSetContactsResult struct {
+	Name      string `xml:"Domain,attr"`
+	IsSuccess bool   `xml:"IsSuccess,attr"`
+}
+
 type DomainCreateOption struct {
 	AddFreeWhoisguard bool
 	WGEnabled         bool
@@ -126,6 +133,9 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 		return nil, err
 	}
 
+	if resp.DomainInfo != nil && strings.EqualFold(resp.DomainInfo.Whoisguard.RawEnabled, "true") {
+		resp.DomainInfo.Whoisguard.Enabled = true
+	}
 	return resp.DomainInfo, nil
 }
 
@@ -211,4 +221,23 @@ func (client *Client) DomainRenew(domainName string, years int) (*DomainRenewRes
 	}
 
 	return resp.DomainRenew, nil
+}
+
+func (client *Client) DomainSetContacts(domainName string) (*DomainSetContactsResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsSetContacts,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+	if err := client.Registrant.addValues(requestInfo.params); err != nil {
+		return nil, err
+	}
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainSetContacts, nil
 }
