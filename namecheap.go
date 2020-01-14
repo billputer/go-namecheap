@@ -63,6 +63,7 @@ type ApiResponse struct {
 	SslCreate          *SslCreateResult          `xml:"CommandResponse>SSLCreateResult"`
 	SslCertificates    []SslGetListResult        `xml:"CommandResponse>SSLListResult>SSL"`
 	UsersGetPricing    []UsersGetPricingResult   `xml:"CommandResponse>UserGetPricingResult>ProductType"`
+	UsersGetBalances   *UsersGetBalancesResult   `xml:"CommandResponse>UserGetBalancesResult"`
 	WhoisguardList     []WhoisguardGetListResult `xml:"CommandResponse>WhoisguardGetListResult>Whoisguard"`
 	WhoisguardEnable   whoisguardEnableResult    `xml:"CommandResponse>WhoisguardEnableResult"`
 	WhoisguardDisable  whoisguardDisableResult   `xml:"CommandResponse>WhoisguardDisableResult"`
