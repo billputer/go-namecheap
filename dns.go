@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	domainsDNSGetHosts  = "namecheap.domains.dns.getHosts"
-	domainsDNSSetHosts  = "namecheap.domains.dns.setHosts"
-	domainsDNSSetCustom = "namecheap.domains.dns.setCustom"
+	domainsDNSGetHosts   = "namecheap.domains.dns.getHosts"
+	domainsDNSSetHosts   = "namecheap.domains.dns.setHosts"
+	domainsDNSSetCustom  = "namecheap.domains.dns.setCustom"
+	domainsDNSSetDefault = "namecheap.domains.dns.setDefault"
 )
 
 type DomainDNSGetHostsResult struct {
@@ -98,4 +99,25 @@ func (client *Client) DomainDNSSetCustom(sld, tld, nameservers string) (*DomainD
 		return nil, err
 	}
 	return resp.DomainDNSSetCustom, nil
+}
+
+type DomainDNSSetDefaultResult struct {
+	Domain string `xml:"Domain,attr"`
+	Update bool   `xml:"Updated,attr"`
+}
+
+func (client *Client) DomainDNSSetDefault(sld, tld string) (*DomainDNSSetDefaultResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsDNSSetDefault,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("SLD", sld)
+	requestInfo.params.Set("TLD", tld)
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+	return resp.DomainDNSSetDefault, nil
 }

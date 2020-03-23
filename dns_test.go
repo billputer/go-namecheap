@@ -169,3 +169,45 @@ func TestDomainsDNSSetCustom(t *testing.T) {
 		t.Errorf("DomainsDNSSetCustom returned %+v, want %+v", result, want)
 	}
 }
+
+func TestDomainsDNSSetDefault(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `
+<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.dns.setDefault</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.dns.setDefault">
+    <DomainDNSSetDefaultResult Domain="domain.com" Updated="true" />
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>32.76</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.dns.setDefault")
+		correctParams.Set("SLD", "domain")
+		correctParams.Set("TLD", "com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	result, err := client.DomainDNSSetDefault("domain", "com")
+	if err != nil {
+		t.Errorf("DomainDNSSetDefault returned error: %v", err)
+	}
+
+	want := &DomainDNSSetDefaultResult{
+		Domain: "domain.com",
+		Update: true,
+	}
+
+	if !reflect.DeepEqual(result, want) {
+		t.Errorf("DomainsDNSSetDefault returned %+v, want %+v", result, want)
+	}
+}
