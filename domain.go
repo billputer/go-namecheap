@@ -2,46 +2,54 @@ package namecheap
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
-	domainsGetList     = "namecheap.domains.getList"
-	domainsGetInfo     = "namecheap.domains.getInfo"
-	domainsCheck       = "namecheap.domains.check"
-	domainsCreate      = "namecheap.domains.create"
-	domainsTLDList     = "namecheap.domains.getTldList"
-	domainsRenew       = "namecheap.domains.renew"
-	domainsSetContacts = "namecheap.domains.setContacts"
+	domainsGetList          = "namecheap.domains.getList"
+	domainsGetInfo          = "namecheap.domains.getInfo"
+	domainsCheck            = "namecheap.domains.check"
+	domainsCreate           = "namecheap.domains.create"
+	domainsTLDList          = "namecheap.domains.getTldList"
+	domainsRenew            = "namecheap.domains.renew"
+	domainsSetContacts      = "namecheap.domains.setContacts"
+	domainsGetRegistrarLock = "namecheap.domains.getRegistrarLock"
+	domainsSetRegistrarLock = "namecheap.domains.setRegistrarLock"
 )
 
 // DomainGetListResult represents the data returned by 'domains.getList'
 type DomainGetListResult struct {
-	ID         int    `xml:"ID,attr"`
-	Name       string `xml:"Name,attr"`
-	User       string `xml:"User,attr"`
-	Created    string `xml:"Created,attr"`
-	Expires    string `xml:"Expires,attr"`
-	IsExpired  bool   `xml:"IsExpired,attr"`
-	IsLocked   bool   `xml:"IsLocked,attr"`
-	AutoRenew  bool   `xml:"AutoRenew,attr"`
-	WhoisGuard string `xml:"WhoisGuard,attr"`
+	ID            int       `xml:"ID,attr"`
+	Name          string    `xml:"Name,attr"`
+	User          string    `xml:"User,attr"`
+	Created       time.Time `xml:"-"`
+	CreatedString string    `xml:"Created,attr"`
+	Expires       time.Time `xml:"-"`
+	ExpiresString string    `xml:"Expires,attr"`
+	IsExpired     bool      `xml:"IsExpired,attr"`
+	IsLocked      bool      `xml:"IsLocked,attr"`
+	AutoRenew     bool      `xml:"AutoRenew,attr"`
+	WhoisGuard    string    `xml:"WhoisGuard,attr"`
 }
 
 // DomainInfo represents the data returned by 'domains.getInfo'
 type DomainInfo struct {
-	ID         int        `xml:"ID,attr"`
-	Name       string     `xml:"DomainName,attr"`
-	Owner      string     `xml:"OwnerName,attr"`
-	Created    string     `xml:"DomainDetails>CreatedDate"`
-	Expires    string     `xml:"DomainDetails>ExpiredDate"`
-	IsExpired  bool       `xml:"IsExpired,attr"`
-	IsLocked   bool       `xml:"IsLocked,attr"`
-	AutoRenew  bool       `xml:"AutoRenew,attr"`
-	DNSDetails DNSDetails `xml:"DnsDetails"`
-	Whoisguard Whoisguard `xml:"Whoisguard"`
+	ID            int        `xml:"ID,attr"`
+	Name          string     `xml:"DomainName,attr"`
+	Owner         string     `xml:"OwnerName,attr"`
+	Created       time.Time  `xml:"-"`
+	CreatedString string     `xml:"DomainDetails>CreatedDate"`
+	Expires       time.Time  `xml:"-"`
+	ExpiresString string     `xml:"DomainDetails>ExpiredDate"`
+	IsExpired     bool       `xml:"IsExpired,attr"`
+	IsLocked      bool       `xml:"IsLocked,attr"`
+	AutoRenew     bool       `xml:"AutoRenew,attr"`
+	DNSDetails    DNSDetails `xml:"DnsDetails"`
+	Whoisguard    Whoisguard `xml:"Whoisguard"`
 }
 
 type DNSDetails struct {
@@ -50,11 +58,19 @@ type DNSDetails struct {
 	Nameservers   []string `xml:"Nameserver"`
 }
 
+type WhoisguardEmailDetails struct {
+	Email                        string `xml:"WhoisGuardEmail,attr"`
+	ForwardedTo                  string `xml:"ForwardedTo,attr"`
+	LastAutoEmailChangeDate      string `xml:"LastAutoEmailChangeDate,attr"`
+	AutoEmailChangeFrequencyDays int    `xml:"AutoEmailChangeFrequencyDays,attr"`
+}
 type Whoisguard struct {
-	RawEnabled  string `xml:"Enabled,attr"`
-	Enabled     bool   `xml:"-"`
-	ID          int64  `xml:"ID"`
-	ExpiredDate string `xml:"ExpiredDate"`
+	RawEnabled        string                 `xml:"Enabled,attr"`
+	Enabled           bool                   `xml:"-"`
+	ID                int64                  `xml:"ID"`
+	ExpiredDate       time.Time              `xml:"-"`
+	ExpiredDateString string                 `xml:"ExpiredDate"`
+	EmailDetails      WhoisguardEmailDetails `xml:"EmailDetails"`
 }
 
 type DomainCheckResult struct {
@@ -84,13 +100,14 @@ type DomainCreateResult struct {
 }
 
 type DomainRenewResult struct {
-	DomainID      int     `xml:"DomainID,attr"`
-	Name          string  `xml:"DomainName,attr"`
-	Renewed       bool    `xml:"Renew,attr"`
-	ChargedAmount float64 `xml:"ChargedAmount,attr"`
-	OrderID       int     `xml:"OrderID,attr"`
-	TransactionID int     `xml:"TransactionID,attr"`
-	ExpireDate    string  `xml:"DomainDetails>ExpiredDate"`
+	DomainID         int     `xml:"DomainID,attr"`
+	Name             string  `xml:"DomainName,attr"`
+	Renewed          bool    `xml:"Renew,attr"`
+	ChargedAmount    float64 `xml:"ChargedAmount,attr"`
+	OrderID          int     `xml:"OrderID,attr"`
+	TransactionID    int     `xml:"TransactionID,attr"`
+	ExpireDate       time.Time
+	ExpireDateString string `xml:"DomainDetails>ExpiredDate"`
 }
 
 type DomainSetContactsResult struct {
@@ -98,6 +115,15 @@ type DomainSetContactsResult struct {
 	IsSuccess bool   `xml:"IsSuccess,attr"`
 }
 
+type DomainRegistrarLockStatusResult struct {
+	Name     string `xml:"Domain,attr"`
+	IsLocked bool   `xml:"RegistrarLockStatus,attr"`
+}
+
+type DomainSetRegistrarLockResult struct {
+	Name      string `xml:"Domain,attr"`
+	IsSuccess bool   `xml:"IsSuccess,attr"`
+}
 type DomainCreateOption struct {
 	AddFreeWhoisguard bool
 	WGEnabled         bool
@@ -111,9 +137,31 @@ func (client *Client) DomainsGetList() ([]DomainGetListResult, error) {
 		params:  url.Values{},
 	}
 
+	requestInfo.params.Set("PageSize", "100")
+
 	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, domain := range resp.Domains {
+		if domain.CreatedString != "" {
+			created, createdErr := resp.ParseDate(domain.CreatedString)
+			if createdErr != nil {
+				return nil, fmt.Errorf("error when parsing Created date to time.Time: %w", createdErr)
+			}
+
+			domain.Created = created
+		}
+
+		if domain.ExpiresString != "" {
+			expires, expiresErr := resp.ParseDate(domain.ExpiresString)
+			if expiresErr != nil {
+				return nil, fmt.Errorf("error when parsing Expires date to time.Time: %w", expiresErr)
+			}
+
+			domain.Expires = expires
+		}
 	}
 
 	return resp.Domains, nil
@@ -133,9 +181,40 @@ func (client *Client) DomainGetInfo(domainName string) (*DomainInfo, error) {
 		return nil, err
 	}
 
-	if resp.DomainInfo != nil && strings.EqualFold(resp.DomainInfo.Whoisguard.RawEnabled, "true") {
-		resp.DomainInfo.Whoisguard.Enabled = true
+	if resp.DomainInfo != nil {
+		if strings.EqualFold(resp.DomainInfo.Whoisguard.RawEnabled, "true") {
+			resp.DomainInfo.Whoisguard.Enabled = true
+		}
+
+		if resp.DomainInfo.CreatedString != "" {
+			created, createdErr := resp.ParseDate(resp.DomainInfo.CreatedString)
+			if createdErr != nil {
+				return nil, fmt.Errorf("error when parsing domain Created date to time.Time: %w", createdErr)
+			}
+
+			resp.DomainInfo.Created = created
+		}
+
+		if resp.DomainInfo.ExpiresString != "" {
+			expires, expiresErr := resp.ParseDate(resp.DomainInfo.ExpiresString)
+			if expiresErr != nil {
+				return nil, fmt.Errorf("error when parsing domain Expires date to time.Time: %w", expiresErr)
+			}
+
+			resp.DomainInfo.Expires = expires
+		}
+
+		if resp.DomainInfo.Whoisguard.ExpiredDateString != "" {
+			expired, expiredErr := resp.ParseDate(resp.DomainInfo.Whoisguard.ExpiredDateString)
+			if expiredErr != nil {
+				return nil, fmt.Errorf("error when parsing WhoisGuard Expired date to time.Time: %w", expiredErr)
+			}
+
+			resp.DomainInfo.Whoisguard.ExpiredDate = expired
+		}
+
 	}
+
 	return resp.DomainInfo, nil
 }
 
@@ -220,6 +299,15 @@ func (client *Client) DomainRenew(domainName string, years int) (*DomainRenewRes
 		return nil, err
 	}
 
+	if resp.DomainRenew.ExpireDateString != "" {
+		expired, expiredErr := resp.ParseDate(resp.DomainRenew.ExpireDateString)
+		if expiredErr != nil {
+			return nil, fmt.Errorf("error when parsing Expired date to time.Time: %w", expiredErr)
+		}
+
+		resp.DomainRenew.ExpireDate = expired
+	}
+
 	return resp.DomainRenew, nil
 }
 
@@ -240,4 +328,39 @@ func (client *Client) DomainSetContacts(domainName string) (*DomainSetContactsRe
 	}
 
 	return resp.DomainSetContacts, nil
+}
+
+func (client *Client) DomainGetRegistrarLock(domainName string) (*DomainRegistrarLockStatusResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsGetRegistrarLock,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainRegistrarLockStatus, nil
+}
+
+func (client *Client) DomainSetRegistrarLock(domainName string, lock bool) (*DomainSetRegistrarLockResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsSetRegistrarLock,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("DomainName", domainName)
+	if !lock {
+		requestInfo.params.Set("LockAction", "UNLOCK")
+	}
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainSetRegistrarLock, nil
 }

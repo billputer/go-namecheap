@@ -46,6 +46,8 @@ func (client *Client) WhoisguardGetList() ([]WhoisguardGetListResult, error) {
 		params:  url.Values{},
 	}
 
+	requestInfo.params.Set("PageSize", "100")
+
 	resp, err := client.do(requestInfo)
 	if err != nil {
 		return nil, err

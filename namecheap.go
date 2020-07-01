@@ -10,8 +10,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const defaultBaseURL = "https://api.namecheap.com/xml.response"
@@ -38,29 +40,76 @@ type ApiRequest struct {
 	params  url.Values
 }
 
+type NamecheapTimeLocation struct {
+	*time.Location
+}
+
+// could be like --4:00, +5, +5:30, +2:50
+var gmtOffsetRegex = regexp.MustCompile(`([\-+])(\d+):?(\d+)?`)
+
+func (n *NamecheapTimeLocation) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var offsetStr string
+	if decodeErr := d.DecodeElement(&offsetStr, &start); decodeErr != nil {
+		return decodeErr
+	}
+
+	pieces := gmtOffsetRegex.FindStringSubmatch(offsetStr)
+
+	if len(pieces) == 0 {
+		return fmt.Errorf("GMTTimeDifference was not of expected format")
+	}
+
+	sign := pieces[1]
+	hours := pieces[2]
+	minutes := pieces[3]
+
+	if minutes == "" {
+		minutes = "00"
+	}
+
+	dur, durErr := time.ParseDuration(fmt.Sprintf("%s%sh%sm", sign, hours, minutes))
+	if durErr != nil {
+		return fmt.Errorf("error when converting parsed GMTTimeDifference to time.Duration: %w", durErr)
+	}
+
+	n.Location = time.FixedZone("Namecheap", int(dur.Seconds()))
+	return nil
+}
+
 type ApiResponse struct {
-	Status             string                    `xml:"Status,attr"`
-	Command            string                    `xml:"RequestedCommand"`
-	TLDList            []TLDListResult           `xml:"CommandResponse>Tlds>Tld"`
-	Domains            []DomainGetListResult     `xml:"CommandResponse>DomainGetListResult>Domain"`
-	DomainInfo         *DomainInfo               `xml:"CommandResponse>DomainGetInfoResult"`
-	DomainDNSHosts     *DomainDNSGetHostsResult  `xml:"CommandResponse>DomainDNSGetHostsResult"`
-	DomainDNSSetHosts  *DomainDNSSetHostsResult  `xml:"CommandResponse>DomainDNSSetHostsResult"`
-	DomainCreate       *DomainCreateResult       `xml:"CommandResponse>DomainCreateResult"`
-	DomainRenew        *DomainRenewResult        `xml:"CommandResponse>DomainRenewResult"`
-	DomainsCheck       []DomainCheckResult       `xml:"CommandResponse>DomainCheckResult"`
-	DomainNSInfo       *DomainNSInfoResult       `xml:"CommandResponse>DomainNSInfoResult"`
-	DomainDNSSetCustom *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
-	DomainSetContacts  *DomainSetContactsResult  `xml:"CommandResponse>DomainSetContactResult"`
-	SslActivate        *SslActivateResult        `xml:"CommandResponse>SSLActivateResult"`
-	SslCreate          *SslCreateResult          `xml:"CommandResponse>SSLCreateResult"`
-	SslCertificates    []SslGetListResult        `xml:"CommandResponse>SSLListResult>SSL"`
-	UsersGetPricing    []UsersGetPricingResult   `xml:"CommandResponse>UserGetPricingResult>ProductType"`
-	WhoisguardList     []WhoisguardGetListResult `xml:"CommandResponse>WhoisguardGetListResult>Whoisguard"`
-	WhoisguardEnable   whoisguardEnableResult    `xml:"CommandResponse>WhoisguardEnableResult"`
-	WhoisguardDisable  whoisguardDisableResult   `xml:"CommandResponse>WhoisguardDisableResult"`
-	WhoisguardRenew    *WhoisguardRenewResult    `xml:"CommandResponse>WhoisguardRenewResult"`
-	Errors             ApiErrors                 `xml:"Errors>Error"`
+	Status                    string                           `xml:"Status,attr"`
+	Command                   string                           `xml:"RequestedCommand"`
+	TLDList                   []TLDListResult                  `xml:"CommandResponse>Tlds>Tld"`
+	Domains                   []DomainGetListResult            `xml:"CommandResponse>DomainGetListResult>Domain"`
+	DomainInfo                *DomainInfo                      `xml:"CommandResponse>DomainGetInfoResult"`
+	DomainDNSHosts            *DomainDNSGetHostsResult         `xml:"CommandResponse>DomainDNSGetHostsResult"`
+	DomainDNSSetHosts         *DomainDNSSetHostsResult         `xml:"CommandResponse>DomainDNSSetHostsResult"`
+	DomainCreate              *DomainCreateResult              `xml:"CommandResponse>DomainCreateResult"`
+	DomainRenew               *DomainRenewResult               `xml:"CommandResponse>DomainRenewResult"`
+	DomainsCheck              []DomainCheckResult              `xml:"CommandResponse>DomainCheckResult"`
+	DomainNSInfo              *DomainNSInfoResult              `xml:"CommandResponse>DomainNSInfoResult"`
+	DomainDNSSetCustom        *DomainDNSSetCustomResult        `xml:"CommandResponse>DomainDNSSetCustomResult"`
+	DomainSetContacts         *DomainSetContactsResult         `xml:"CommandResponse>DomainSetContactResult"`
+	DomainRegistrarLockStatus *DomainRegistrarLockStatusResult `xml:"CommandResponse>DomainGetRegistrarLockResult"`
+	DomainSetRegistrarLock    *DomainSetRegistrarLockResult    `xml:"CommandResponse>DomainSetRegistrarLockResult"`
+	SslActivate               *SslActivateResult               `xml:"CommandResponse>SSLActivateResult"`
+	SslCreate                 *SslCreateResult                 `xml:"CommandResponse>SSLCreateResult"`
+	SslCertificates           []SslGetListResult               `xml:"CommandResponse>SSLListResult>SSL"`
+	UsersGetPricing           []UsersGetPricingResult          `xml:"CommandResponse>UserGetPricingResult>ProductType"`
+	WhoisguardList            []WhoisguardGetListResult        `xml:"CommandResponse>WhoisguardGetListResult>Whoisguard"`
+	WhoisguardEnable          whoisguardEnableResult           `xml:"CommandResponse>WhoisguardEnableResult"`
+	WhoisguardDisable         whoisguardDisableResult          `xml:"CommandResponse>WhoisguardDisableResult"`
+	WhoisguardRenew           *WhoisguardRenewResult           `xml:"CommandResponse>WhoisguardRenewResult"`
+	Errors                    ApiErrors                        `xml:"Errors>Error"`
+	GMTTimeDifference         NamecheapTimeLocation            `xml:"GMTTimeDifference"`
+}
+
+func (a *ApiResponse) ParseTime(layout, value string) (time.Time, error) {
+	return time.ParseInLocation(layout, value, a.GMTTimeDifference.Location)
+}
+
+func (a *ApiResponse) ParseDate(value string) (time.Time, error) {
+	return time.ParseInLocation("01/02/2006", value, a.GMTTimeDifference.Location)
 }
 
 // ApiError is the format of the error returned in the api responses.
