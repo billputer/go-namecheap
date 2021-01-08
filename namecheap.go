@@ -22,6 +22,7 @@ type Client struct {
 	ApiToken   string
 	UserName   string
 	HttpClient *http.Client
+	ClientIp   string
 
 	// Base URL for API requests.
 	// Defaults to the public Namecheap API,
@@ -91,6 +92,7 @@ func NewClient(apiUser, apiToken, userName string) *Client {
 		UserName:   userName,
 		HttpClient: http.DefaultClient,
 		BaseURL:    defaultBaseURL,
+		ClientIp:   "127.0.0.1",
 	}
 }
 
@@ -142,8 +144,7 @@ func (client *Client) makeRequest(request *ApiRequest) (*http.Request, error) {
 	p.Set("ApiUser", client.ApiUser)
 	p.Set("ApiKey", client.ApiToken)
 	p.Set("UserName", client.UserName)
-	// This param is required by the API, but not actually used.
-	p.Set("ClientIp", "127.0.0.1")
+	p.Set("ClientIp", client.ClientIp)
 	p.Set("Command", request.command)
 
 	b := p.Encode()
