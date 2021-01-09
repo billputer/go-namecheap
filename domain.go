@@ -69,7 +69,25 @@ type DomainCheckResult struct {
 }
 
 type TLDListResult struct {
-	Name string `xml:"Name,attr"`
+	Name                          string `xml:"Name,attr"`
+	NonRealTimeDomain             bool   `xml:"NonRealTimeDomain,attr"`
+	MinRegisterYears              int    `xml:"MinRegisterYears,attr"`
+	MaxRegisterYears              int    `xml:"MaxRegisterYears,attr"`
+	MinRenewYears                 int    `xml:"MinRenewYears,attr"`
+	MaxRenewYears                 int    `xml:"MaxRenewYears,attr"`
+	MinTransferYears              int    `xml:"MinTransferYears,attr"`
+	MaxTransferYears              int    `xml:"MaxTransferYears,attr"`
+	IsAPIRegisterable             bool   `xml:"IsApiRegisterable,attr"`
+	IsAPIRenewable                bool   `xml:"IsApiRenewable,attr"`
+	IsAPITransferable             bool   `xml:"IsApiTransferable,attr"`
+	IsEppRequired                 bool   `xml:"IsEppRequired,attr"`
+	IsDisableModContact           bool   `xml:"IsDisableModContact,attr"`
+	IsDisableWGAllot              bool   `xml:"IsDisableWGAllot,attr"`
+	IsIncludeInExtendedSearchOnly bool   `xml:"IsIncludeInExtendedSearchOnly,attr"`
+	SequenceNumber                int    `xml:"SequenceNumber,attr"`
+	Type                          string `xml:"Type,attr"`
+	IsSupportsIDN                 bool   `xml:"IsSupportsIDN,attr"`
+	Category                      string `xml:"Category,attr"`
 }
 
 type DomainCreateResult struct {
