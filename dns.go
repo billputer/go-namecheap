@@ -70,7 +70,7 @@ func (client *Client) DomainDNSSetDefault(
 	if err != nil {
 		return nil, err
 	}
-	return resp.DomainDNSSetDefaultResult, nil
+	return resp.DomainDNSSetDefault, nil
 }
 
 func (client *Client) DomainDNSSetHosts(
