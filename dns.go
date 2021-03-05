@@ -66,6 +66,10 @@ func (client *Client) DomainDNSSetDefault(
 	requestInfo.params.Set("SLD", sld)
 	requestInfo.params.Set("TLD", tld)
 
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
 	return resp.DomainDNSSetDefaultResult, nil
 }
 
