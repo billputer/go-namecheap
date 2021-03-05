@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	domainsDNSGetHosts  = "namecheap.domains.dns.getHosts"
-	domainsDNSSetHosts  = "namecheap.domains.dns.setHosts"
-	domainsDNSSetCustom = "namecheap.domains.dns.setCustom"
+	domainsDNSGetHosts   = "namecheap.domains.dns.getHosts"
+	domainsDNSSetDefault = "namecheap.domains.dns.setDefault"
+	domainsDNSSetHosts   = "namecheap.domains.dns.setHosts"
+	domainsDNSSetCustom  = "namecheap.domains.dns.setCustom"
 )
 
 type DomainDNSGetHostsResult struct {
@@ -25,6 +26,11 @@ type DomainDNSHost struct {
 	Address string `xml:"Address,attr"`
 	MXPref  int    `xml:"MXPref,attr"`
 	TTL     int    `xml:"TTL,attr"`
+}
+
+type DomainDNSSetDefaultResult struct {
+	Domain    string `xml:"Domain,attr"`
+	IsSuccess bool   `xml:"IsSuccess,attr"`
 }
 
 type DomainDNSSetHostsResult struct {
@@ -47,6 +53,24 @@ func (client *Client) DomainsDNSGetHosts(sld, tld string) (*DomainDNSGetHostsRes
 	}
 
 	return resp.DomainDNSHosts, nil
+}
+
+func (client *Client) DomainDNSSetDefault(
+	sld, tld string, hosts []DomainDNSHost,
+) (*DomainDNSSetDefaultResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsDNSSetDefault,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("SLD", sld)
+	requestInfo.params.Set("TLD", tld)
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+	return resp.DomainDNSSetDefault, nil
 }
 
 func (client *Client) DomainDNSSetHosts(
