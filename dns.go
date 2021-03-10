@@ -10,6 +10,7 @@ const (
 	domainsDNSGetHosts   = "namecheap.domains.dns.getHosts"
 	domainsDNSSetDefault = "namecheap.domains.dns.setDefault"
 	domainsDNSSetHosts   = "namecheap.domains.dns.setHosts"
+	domainsDNSGetList    = "namecheap.domains.dns.getList"
 	domainsDNSSetCustom  = "namecheap.domains.dns.setCustom"
 )
 
@@ -17,6 +18,12 @@ type DomainDNSGetHostsResult struct {
 	Domain        string          `xml:"Domain,attr"`
 	IsUsingOurDNS bool            `xml:"IsUsingOurDNS,attr"`
 	Hosts         []DomainDNSHost `xml:"host"`
+}
+
+type DomainDNSGetListResult struct {
+	Domain        string   `xml:"Domain,attr"`
+	IsUsingOurDNS bool     `xml:"IsUsingOurDNS,attr"`
+	Nameservers   []string `xml:"Nameserver"`
 }
 
 type DomainDNSHost struct {
@@ -53,6 +60,23 @@ func (client *Client) DomainsDNSGetHosts(sld, tld string) (*DomainDNSGetHostsRes
 	}
 
 	return resp.DomainDNSHosts, nil
+}
+
+func (client *Client) DomainDNSGetList(sld, tld string) (*DomainDNSGetListResult, error) {
+	requestInfo := &ApiRequest{
+		command: domainsDNSGetList,
+		method:  "POST",
+		params:  url.Values{},
+	}
+	requestInfo.params.Set("SLD", sld)
+	requestInfo.params.Set("TLD", tld)
+
+	resp, err := client.do(requestInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.DomainDNSNameservers, nil
 }
 
 func (client *Client) DomainDNSSetDefault(

@@ -40,32 +40,33 @@ type ApiRequest struct {
 }
 
 type ApiResponse struct {
-	Status             string                    `xml:"Status,attr"`
-	Command            string                    `xml:"RequestedCommand"`
-	TLDList            []TLDListResult           `xml:"CommandResponse>Tlds>Tld"`
-	Domains            []DomainGetListResult     `xml:"CommandResponse>DomainGetListResult>Domain"`
-	DomainInfo         *DomainInfo               `xml:"CommandResponse>DomainGetInfoResult"`
-	DomainDNSHosts     *DomainDNSGetHostsResult  `xml:"CommandResponse>DomainDNSGetHostsResult"`
-	DomainDNSSetHosts  *DomainDNSSetHostsResult  `xml:"CommandResponse>DomainDNSSetHostsResult"`
-	DomainCreate       *DomainCreateResult       `xml:"CommandResponse>DomainCreateResult"`
-	DomainRenew        *DomainRenewResult        `xml:"CommandResponse>DomainRenewResult"`
-	DomainsCheck       []DomainCheckResult       `xml:"CommandResponse>DomainCheckResult"`
-	DomainNSCreate     *DomainNSCreateResult     `xml:"CommandResponse>DomainNSCreateResult"`
-	DomainNSDelete     *DomainNSDeleteResult     `xml:"CommandResponse>DomainNSDeleteResult"`
-	DomainNSInfo       *DomainNSInfoResult       `xml:"CommandResponse>DomainNSInfoResult"`
-	DomainNSUpdate     *DomainNSUpdateResult     `xml:"CommandResponse>DomainNSUpdateResult"`
-	DomainDNSSetCustom *DomainDNSSetCustomResult `xml:"CommandResponse>DomainDNSSetCustomResult"`
-  DomainDNSSetDefault *DomainDNSSetDefaultResult `xml:"CommandResponse>DomainDNSSetDefaultResult"`
-	DomainSetContacts  *DomainSetContactsResult  `xml:"CommandResponse>DomainSetContactResult"`
-	SslActivate        *SslActivateResult        `xml:"CommandResponse>SSLActivateResult"`
-	SslCreate          *SslCreateResult          `xml:"CommandResponse>SSLCreateResult"`
-	SslCertificates    []SslGetListResult        `xml:"CommandResponse>SSLListResult>SSL"`
-	UsersGetPricing    []UsersGetPricingResult   `xml:"CommandResponse>UserGetPricingResult>ProductType"`
-	WhoisguardList     []WhoisguardGetListResult `xml:"CommandResponse>WhoisguardGetListResult>Whoisguard"`
-	WhoisguardEnable   whoisguardEnableResult    `xml:"CommandResponse>WhoisguardEnableResult"`
-	WhoisguardDisable  whoisguardDisableResult   `xml:"CommandResponse>WhoisguardDisableResult"`
-	WhoisguardRenew    *WhoisguardRenewResult    `xml:"CommandResponse>WhoisguardRenewResult"`
-	Errors             ApiErrors                 `xml:"Errors>Error"`
+	Status               string                     `xml:"Status,attr"`
+	Command              string                     `xml:"RequestedCommand"`
+	TLDList              []TLDListResult            `xml:"CommandResponse>Tlds>Tld"`
+	Domains              []DomainGetListResult      `xml:"CommandResponse>DomainGetListResult>Domain"`
+	DomainInfo           *DomainInfo                `xml:"CommandResponse>DomainGetInfoResult"`
+	DomainDNSHosts       *DomainDNSGetHostsResult   `xml:"CommandResponse>DomainDNSGetHostsResult"`
+	DomainDNSNameservers *DomainDNSGetListResult    `xml:"CommandResponse>DomainDNSGetListResult"`
+	DomainDNSSetHosts    *DomainDNSSetHostsResult   `xml:"CommandResponse>DomainDNSSetHostsResult"`
+	DomainCreate         *DomainCreateResult        `xml:"CommandResponse>DomainCreateResult"`
+	DomainRenew          *DomainRenewResult         `xml:"CommandResponse>DomainRenewResult"`
+	DomainsCheck         []DomainCheckResult        `xml:"CommandResponse>DomainCheckResult"`
+	DomainNSCreate       *DomainNSCreateResult      `xml:"CommandResponse>DomainNSCreateResult"`
+	DomainNSDelete       *DomainNSDeleteResult      `xml:"CommandResponse>DomainNSDeleteResult"`
+	DomainNSInfo         *DomainNSInfoResult        `xml:"CommandResponse>DomainNSInfoResult"`
+	DomainNSUpdate       *DomainNSUpdateResult      `xml:"CommandResponse>DomainNSUpdateResult"`
+	DomainDNSSetCustom   *DomainDNSSetCustomResult  `xml:"CommandResponse>DomainDNSSetCustomResult"`
+	DomainDNSSetDefault  *DomainDNSSetDefaultResult `xml:"CommandResponse>DomainDNSSetDefaultResult"`
+	DomainSetContacts    *DomainSetContactsResult   `xml:"CommandResponse>DomainSetContactResult"`
+	SslActivate          *SslActivateResult         `xml:"CommandResponse>SSLActivateResult"`
+	SslCreate            *SslCreateResult           `xml:"CommandResponse>SSLCreateResult"`
+	SslCertificates      []SslGetListResult         `xml:"CommandResponse>SSLListResult>SSL"`
+	UsersGetPricing      []UsersGetPricingResult    `xml:"CommandResponse>UserGetPricingResult>ProductType"`
+	WhoisguardList       []WhoisguardGetListResult  `xml:"CommandResponse>WhoisguardGetListResult>Whoisguard"`
+	WhoisguardEnable     whoisguardEnableResult     `xml:"CommandResponse>WhoisguardEnableResult"`
+	WhoisguardDisable    whoisguardDisableResult    `xml:"CommandResponse>WhoisguardDisableResult"`
+	WhoisguardRenew      *WhoisguardRenewResult     `xml:"CommandResponse>WhoisguardRenewResult"`
+	Errors               ApiErrors                  `xml:"Errors>Error"`
 }
 
 // ApiError is the format of the error returned in the api responses.
