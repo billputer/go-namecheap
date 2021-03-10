@@ -71,6 +71,52 @@ func TestDomainsDNSGetHosts(t *testing.T) {
 	}
 }
 
+func TestDomainsDNSGetList(t *testing.T) {
+	setup()
+	defer teardown()
+
+	respXML := `
+<?xml version="1.0" encoding="UTF-8"?>
+<ApiResponse xmlns="http://api.namecheap.com/xml.response" Status="OK">
+  <Errors />
+  <RequestedCommand>namecheap.domains.dns.getList</RequestedCommand>
+  <CommandResponse Type="namecheap.domains.dns.getList">
+	<DomainDNSGetListResult Domain="domain.com" IsUsingOurDNS="true">
+	  <Nameserver>dns1.name-servers.com</Nameserver>
+	  <Nameserver>dns2.name-servers.com</Nameserver>
+	</DomainDNSGetListResult>
+  </CommandResponse>
+  <Server>SERVER-NAME</Server>
+  <GMTTimeDifference>+5</GMTTimeDifference>
+  <ExecutionTime>32.76</ExecutionTime>
+</ApiResponse>`
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		correctParams := fillDefaultParams(url.Values{})
+		correctParams.Set("Command", "namecheap.domains.dns.getList")
+		correctParams.Set("SLD", "domain")
+		correctParams.Set("TLD", "com")
+		testBody(t, r, correctParams)
+		testMethod(t, r, "POST")
+		fmt.Fprint(w, respXML)
+	})
+
+	hosts, err := client.DomainDNSGetList("domain", "com")
+	if err != nil {
+		t.Errorf("DomainsDNSGetHosts returned error: %v", err)
+	}
+
+	want := &DomainDNSGetListResult{
+		Domain:        "domain.com",
+		IsUsingOurDNS: true,
+		Nameservers:   []string{"dns1.name-servers.com", "dns2.name-servers.com"},
+	}
+
+	if !reflect.DeepEqual(hosts, want) {
+		t.Errorf("DomainsDNSGetHosts returned %+v, want %+v", hosts, want)
+	}
+}
+
 func TestDomainsDNSSetHosts(t *testing.T) {
 	setup()
 	defer teardown()
